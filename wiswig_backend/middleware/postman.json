@@ -1,0 +1,30 @@
+{
+	"name": "Newsletter API",
+	"description": "API for managing newsletters",
+	"version": "1.0.0",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"dependencies": {
+		"body-parser": "^1.19.0",
+		"express": "^4.17.1",
+		"jsonwebtoken": "^8.5.1",
+		"mongoose": "^6.2.1"
+	},
+	"devDependencies": {},
+	"createNewsletter": {
+		"url": "http://localhost:3000/api/newsletter",
+		"method": "POST",
+		"header": {
+			"Content-Type": "application/json",
+			"Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0IiwiZW1haWwiOiJleGFtcGxlQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjgwMDAzMTE3LCJleHAiOjE2ODAwMDY3MTd9.guI5375neP2xmMMQGYf0CxEkdagvw_R4qzOV0HVLfgA"
+		},
+		"body": {
+			"title": "Newsletter title",
+			"description": "Newsletter description",
+			"content": "Newsletter content",
+			"status": "published"
+		}
+	}
+}
+		
