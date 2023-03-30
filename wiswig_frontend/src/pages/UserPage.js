@@ -1,7 +1,12 @@
 import { Helmet } from 'react-helmet-async';
+import axios from 'axios';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
+
+
+
 // @mui
 import {
   Card,
@@ -28,19 +33,19 @@ import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
+
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
+  { id: 'user_Mail', label: 'Email', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
+  { id: 'active', label: 'Active', alignRight: false },
+  { id: 'createdAt', label: 'Created At', alignRight: false },
+  { id: 'updatedAt', label: 'Updated At', alignRight: false },
 ];
+
 
 // ----------------------------------------------------------------------
 
@@ -88,6 +93,21 @@ export default function UserPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/admin/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
   };
@@ -104,7 +124,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = users.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -140,9 +160,10 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
+
 
   const isNotFound = !filteredUsers.length && !!filterName;
 
@@ -172,46 +193,36 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={users.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
+                    const { _id, user_First_Name, user_Last_Name, role, active, newsletters } = row;
+                    const selectedUser = selected.indexOf(_id) !== -1;
+                    const fullName = `${user_First_Name} ${user_Last_Name}`;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, _id)}
+                        role="checkbox"
+                        aria-checked={selectedUser}
+                        tabIndex={-1}
+                        key={_id}
+                        selected={selectedUser}
+                      >
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedUser} />
                         </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
+                        <TableCell component="th" id={_id} scope="row" padding="none">
+                          {fullName}
                         </TableCell>
-
-                        <TableCell align="left">{company}</TableCell>
-
                         <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
+                        <TableCell align="left">{active ? 'Active' : 'Inactive'}</TableCell>
+                        <TableCell align="left">{newsletters.length}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -252,7 +263,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={users.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
