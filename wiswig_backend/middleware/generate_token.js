@@ -2,9 +2,7 @@ const jwt = require('jsonwebtoken');
 
 // create a mock payload
 const payload = {
-    userId: '1234',
-    email: 'example@example.com',
-    role: 'admin'
+    email: 'hello@esprit.tn'
 };
 
 // sign the token with a secret key
