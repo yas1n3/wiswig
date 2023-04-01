@@ -8,6 +8,7 @@ import BlogPage from './pages/BlogPage';
 import UserPage from './pages/UserPage';
 import Page404 from './pages/Page404';
 import NewUser from './pages/NewUser';
+import New from './pages/User/NewUser';
 
 export default function Router() {
   const { isAuthenticated } = useAuth();
@@ -33,6 +34,7 @@ export default function Router() {
         { path: 'app', element: <PrivateRoute element={<DashboardAppPage />} /> },
         { path: 'products', element: <PrivateRoute element={<ProductsPage />} /> },
         { path: 'blog', element: <PrivateRoute element={<BlogPage />} /> },
+        { path: 'newuser', element: { New } },
         {
           path: 'user',
           element: <PrivateRoute element={<UserPage />} />,
