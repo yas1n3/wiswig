@@ -10,14 +10,15 @@ export default function AccountPopover() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('/api/user'); // set up a route in the backend to get the logged-in user details
-        setUser(response.data);
+        // const response = await axios.get('/api/user'); // set up a route in the backend to get the logged-in user details
+       // setUser(response.data);
       } catch (error) {
         console.log(error);
       }
     };
     fetchUser();
-  }, []);
+  }, 
+  []);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);

@@ -2,10 +2,9 @@ import React, { useRef } from 'react';
 import EmailEditor from 'react-email-editor';
 import { Helmet } from 'react-helmet-async';
 
-
 import { Container, Stack, Typography, Button } from '@mui/material';
 import axios from 'axios';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 import Iconify from '../components/iconify';
 
 export default function DashboardAppPage() {
@@ -13,13 +12,13 @@ export default function DashboardAppPage() {
   const { user } = useAuth();
 
   const save = () => {
-        const title = prompt('Enter a title for the newsletter:');
-        const description = prompt('Enter a description for the newsletter:');
-    
-        if (!title || !description) {
-          alert('Please enter a title and description for the newsletter.');
-          return;
-        }
+    const title = prompt('Enter a title for the newsletter:');
+    const description = prompt('Enter a description for the newsletter:');
+
+    if (!title || !description) {
+      alert('Please enter a title and description for the newsletter.');
+      return;
+    }
 
     emailEditorRef.current?.saveDesign((design) => {
       emailEditorRef.current?.exportHtml((data) => {

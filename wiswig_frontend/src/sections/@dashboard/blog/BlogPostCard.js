@@ -1,37 +1,24 @@
 import PropTypes from 'prop-types';
-// @mui
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Link, Card, Grid, Avatar, Typography, CardContent } from '@mui/material';
-// utils
-import { fDate } from '../../../utils/formatTime';
-import { fShortenNumber } from '../../../utils/formatNumber';
-//
-import SvgColor from '../../../components/svg-color';
-import Iconify from '../../../components/iconify';
+import { Box, Button, Card, CardContent, Grid, Link, Typography } from '@mui/material';
+import * as htmlToImage from 'html-to-image';
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
+import React from 'react';
 
-// ----------------------------------------------------------------------
+
 
 const StyledCardMedia = styled('div')({
   position: 'relative',
   paddingTop: 'calc(100% * 3 / 4)',
 });
 
-const StyledTitle = styled(Link)({
+const StyledTitle = styled(Typography)({
   height: 44,
   overflow: 'hidden',
   WebkitLineClamp: 2,
   display: '-webkit-box',
   WebkitBoxOrient: 'vertical',
 });
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
-  zIndex: 9,
-  width: 32,
-  height: 32,
-  position: 'absolute',
-  left: theme.spacing(3),
-  bottom: theme.spacing(-2),
-}));
 
 const StyledInfo = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -49,23 +36,37 @@ const StyledCover = styled('img')({
   position: 'absolute',
 });
 
-// ----------------------------------------------------------------------
-
 BlogPostCard.propTypes = {
-  post: PropTypes.object.isRequired,
+  newsletter: PropTypes.shape({
+    creator: PropTypes.object,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    HTMLcontent: PropTypes.string,
+    status: PropTypes.string,
+    createdAt: PropTypes.string,
+  }),
   index: PropTypes.number,
+  slug: PropTypes.string,
 };
 
-export default function BlogPostCard({ post, index }) {
-  const { cover, title, view, comment, share, author, createdAt } = post;
+export default function BlogPostCard({ newsletter, index, slug }) {
+  const { title, description, HTMLcontent, createdAt } = newsletter;
   const latestPostLarge = index === 0;
   const latestPost = index === 1 || index === 2;
 
-  const POST_INFO = [
-    { number: comment, icon: 'eva:message-circle-fill' },
-    { number: view, icon: 'eva:eye-fill' },
-    { number: share, icon: 'eva:share-fill' },
-  ];
+  const [previewImage, setPreviewImage] = React.useState(null);
+
+  React.useEffect(() => {
+    if (HTMLcontent) {
+      htmlToImage.toPng(HTMLcontent)
+        .then((dataUrl) => {
+          setPreviewImage(dataUrl);
+        })
+        .catch((error) => {
+          console.error('Error generating preview image', error);
+        });
+    }
+  }, [HTMLcontent]);
 
   return (
     <Grid item xs={12} sm={latestPostLarge ? 12 : 6} md={latestPostLarge ? 6 : 3}>
@@ -91,84 +92,53 @@ export default function BlogPostCard({ post, index }) {
             }),
           }}
         >
-          <SvgColor
-            color="paper"
-            src="/assets/icons/shape-avatar.svg"
-            sx={{
-              width: 80,
-              height: 36,
-              zIndex: 9,
-              bottom: -15,
-              position: 'absolute',
-              color: 'background.paper',
-              ...((latestPostLarge || latestPost) && { display: 'none' }),
-            }}
-          />
-          <StyledAvatar
-            alt={author.name}
-            src={author.avatarUrl}
-            sx={{
-              ...((latestPostLarge || latestPost) && {
-                zIndex: 9,
-                top: 24,
-                left: 24,
-                width: 40,
-                height: 40,
-              }),
-            }}
-          />
-
-          <StyledCover alt={title} src={cover} />
+          {previewImage ? (
+            <StyledCover alt={title} src={previewImage} />
+          ) : (
+            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Loading preview...
+              </Typography>
+            </Box>
+          )}
         </StyledCardMedia>
 
-        <CardContent
+        <CardContent sx={{ pb: 0 }}>
+          <Box sx={{ mb: 2 }}>
+            <StyledTitle variant="h5" component="h2" gutterBottom>
+              {title}
+            </StyledTitle>
+            <StyledInfo>
+              <Typography variant="body2">
+                {new Date(createdAt).toLocaleDateString()}
+              </Typography>
+            </StyledInfo>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+        </CardContent>
+        <Box
           sx={{
-            pt: 4,
-            ...((latestPostLarge || latestPost) && {
-              bottom: 0,
-              width: '100%',
-              position: 'absolute',
-            }),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
           }}
         >
-          <Typography gutterBottom variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
-            {fDate(createdAt)}
-          </Typography>
-
-          <StyledTitle
-            color="inherit"
-            variant="subtitle2"
-            underline="hover"
-            sx={{
-              ...(latestPostLarge && { typography: 'h5', height: 60 }),
-              ...((latestPostLarge || latestPost) && {
-                color: 'common.white',
-              }),
-            }}
-          >
-            {title}
-          </StyledTitle>
-
-          <StyledInfo>
-            {POST_INFO.map((info, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  ml: index === 0 ? 0 : 1.5,
-                  ...((latestPostLarge || latestPost) && {
-                    color: 'grey.500',
-                  }),
-                }}
-              >
-                <Iconify icon={info.icon} sx={{ width: 16, height: 16, mr: 0.5 }} />
-                <Typography variant="caption">{fShortenNumber(info.number)}</Typography>
-              </Box>
-            ))}
-          </StyledInfo>
-        </CardContent>
+          <Link href={`/newsletter/${slug}`} passHref>
+            <Button variant="contained" color="primary">
+              Read More
+            </Button>
+          </Link>
+        </Box>
       </Card>
     </Grid>
   );
 }
+
+
+
+
+
+

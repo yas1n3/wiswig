@@ -1,27 +1,52 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
+import PropTypes from 'prop-types';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export function useAuth() {
-    return useContext(AuthContext);
+  return useContext(AuthContext);
 }
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
 
-    function login(user) {
-        setUser(user);
+  const login = async (mail, password) => {
+    const response = await fetch('http://localhost:4000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ mail, password }),
+    });
+
+    if (response.ok) {
+      const { token, ...user } = await response.json();
+
+      // Store the JWT in the browser's localStorage
+      localStorage.setItem('token', token);
+
+      setUser(user);
+      return true;
     }
 
-    function logout() {
-        setUser(null);
-    }
+    console.error('Error:', response.status);
+    return false;
+  };
 
-    const value = {
-        user,
-        login,
-        logout,
-    };
+  const logout = () => {
+    // Remove the JWT from the browser's localStorage
+    localStorage.removeItem('token');
+    setUser(null);
+  };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const value = {
+    user,
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};

@@ -42,8 +42,8 @@ const TABLE_HEAD = [
   { id: 'user_Mail', label: 'Email', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
   { id: 'active', label: 'Active', alignRight: false },
-  { id: 'createdAt', label: 'Created At', alignRight: false },
-  { id: 'updatedAt', label: 'Updated At', alignRight: false },
+  // { id: 'createdAt', label: 'Created At', alignRight: false },
+  // { id: 'updatedAt', label: 'Updated At', alignRight: false },
 ];
 
 
@@ -200,9 +200,9 @@ export default function UserPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, user_First_Name, user_Last_Name, role, active, newsletters } = row;
+                    const { _id, user_First_Name, user_Last_Name, user_Mail, role, active } = row;
                     const selectedUser = selected.indexOf(_id) !== -1;
-                    const fullName = `${user_First_Name} ${user_Last_Name}`;
+                    const name = `${user_First_Name} ${user_Last_Name}`;
 
                     return (
                       <TableRow
@@ -218,11 +218,12 @@ export default function UserPage() {
                           <Checkbox checked={selectedUser} />
                         </TableCell>
                         <TableCell component="th" id={_id} scope="row" padding="none">
-                          {fullName}
+                          {name}
                         </TableCell>
+                        <TableCell align="left">{user_Mail}</TableCell>
                         <TableCell align="left">{role}</TableCell>
                         <TableCell align="left">{active ? 'Active' : 'Inactive'}</TableCell>
-                        <TableCell align="left">{newsletters.length}</TableCell>
+                        
                       </TableRow>
                     );
                   })}

@@ -1,46 +1,50 @@
-import { Navigate, useRoutes } from 'react-router-dom';
-// layouts
+import { Navigate, Route, useRoutes } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import DashboardLayout from './layouts/dashboard';
-import SimpleLayout from './layouts/simple';
-//
+import LoginPage from './pages/LoginPage';
+import DashboardAppPage from './pages/DashboardAppPage';
+import ProductsPage from './pages/ProductsPage';
 import BlogPage from './pages/BlogPage';
 import UserPage from './pages/UserPage';
-import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
-import ProductsPage from './pages/ProductsPage';
-import DashboardAppPage from './pages/DashboardAppPage';
-
-// ----------------------------------------------------------------------
+import NewUser from './pages/NewUser';
 
 export default function Router() {
-  const routes = useRoutes([
+  const { isAuthenticated } = useAuth();
+
+  function PrivateRoute({ element, ...rest }) {
+    return isAuthenticated ? (
+      <Route {...rest} element={element} />
+    ) : (
+      <Navigate to="/" replace />
+    );
+  }
+
+  return useRoutes([
     {
       path: '/',
-      element: <LoginPage />,
+      element: isAuthenticated ? <Navigate to="/dashboard/app" /> : <LoginPage />,
     },
     {
       path: '/dashboard',
       element: <DashboardLayout />,
       children: [
         { element: <Navigate to="/dashboard/app" />, index: true },
-        { path: 'app', element: <DashboardAppPage /> },
-        { path: 'user', element: <UserPage /> },
-        { path: 'products', element: <ProductsPage /> },
-        { path: 'blog', element: <BlogPage /> },
-      ],
-    },
-    {
-      element: <SimpleLayout />,
-      children: [
-        { path: '404', element: <Page404 /> },
-        { path: '*', element: <Navigate to="/404" /> },
-      ],
+        { path: 'app', element: <PrivateRoute element={<DashboardAppPage />} /> },
+        { path: 'products', element: <PrivateRoute element={<ProductsPage />} /> },
+        { path: 'blog', element: <PrivateRoute element={<BlogPage />} /> },
+        {
+          path: 'user',
+          element: <PrivateRoute element={<UserPage />} />,
+          children: [
+            { path: 'new', element: <PrivateRoute element={<NewUser />} /> }
+          ]
+        }
+      ]
     },
     {
       path: '*',
-      element: <Navigate to="/404" replace />,
-    },
+      element: <Page404 />
+    }
   ]);
-
-  return routes;
 }
