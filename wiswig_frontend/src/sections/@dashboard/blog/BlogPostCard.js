@@ -1,9 +1,14 @@
 import PropTypes from 'prop-types';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Button, Card, CardContent, Grid, Link, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Grid, IconButton, Link, Menu, MenuItem, Typography } from '@mui/material';
 import * as htmlToImage from 'html-to-image';
-import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
-import React from 'react';
+import { toPng } from 'html-to-image';
+import React, { useContext, useEffect, useState } from 'react';
+import useSWR, { mutate } from 'swr';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { NewslettersContext } from '../../../context/NewslettersContext';
 
 
 
@@ -38,8 +43,9 @@ const StyledCover = styled('img')({
 
 BlogPostCard.propTypes = {
   newsletter: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
     creator: PropTypes.object,
-    title: PropTypes.string,
+    title: PropTypes.string.isRequired,
     description: PropTypes.string,
     HTMLcontent: PropTypes.string,
     status: PropTypes.string,
@@ -49,16 +55,20 @@ BlogPostCard.propTypes = {
   slug: PropTypes.string,
 };
 
-export default function BlogPostCard({ newsletter, index, slug }) {
-  const { title, description, HTMLcontent, createdAt } = newsletter;
+export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, slug }) {
+  const newslettersContext = useContext(NewslettersContext);
+  const { description, HTMLcontent, createdAt } = newsletter;
   const latestPostLarge = index === 0;
   const latestPost = index === 1 || index === 2;
 
   const [previewImage, setPreviewImage] = React.useState(null);
+  const [newsletters, setNewsletters] = useState([]);
+
 
   React.useEffect(() => {
     if (HTMLcontent) {
-      htmlToImage.toPng(HTMLcontent)
+      htmlToImage
+        .toPng(HTMLcontent)
         .then((dataUrl) => {
           setPreviewImage(dataUrl);
         })
@@ -68,77 +78,103 @@ export default function BlogPostCard({ newsletter, index, slug }) {
     }
   }, [HTMLcontent]);
 
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  // const navigate = useNavigate()
+  const { data } = useSWR(`http://localhost:4000/newsletter/newsletter/${newsletter._id}`, async (url) => {
+    const response = await axios.get(url);
+    return response.data;
+  });
+  const handleDelete = async () => {
+    try {
+      await axios.post(`http://localhost:4000/newsletter/delete/${newsletter._id}`);
+      console.log(`Newsletter with id ${newsletter._id} has been deleted`);
+      mutate(`http://localhost:4000/newsletter/${newsletter._id}`, undefined, true);
+      // newslettersContext.deleteNewsletter(newsletter._id);
+      setNewsletters(prevNewsletters =>
+        prevNewsletters.filter(prevNewsletter => prevNewsletter._id !== newsletter._id)
+      );
+    } catch (error) {
+      console.error(`Error deleting newsletter with id ${newsletter._id}`, error);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      await axios.post(`http://localhost:4000/newsletter/duplicate/${newsletter._id}`);
+      console.log(`Newsletter with id ${newsletter._id} has been duplicated`);
+      newslettersContext.addNewsletter(newsletter);
+    } catch (error) {
+      console.error(`Error duplicating newsletter with id ${newsletter._id}`, error);
+    }
+  };
+  const handleEdit = () => {
+    console.log(`Editing newsletter with slug: ${slug}`);
+  };
+  const handleSendTo = () => {
+    console.log(`Sending newsletter with slug: ${slug} to...`);
+  };
+
   return (
     <Grid item xs={12} sm={latestPostLarge ? 12 : 6} md={latestPostLarge ? 6 : 3}>
       <Card sx={{ position: 'relative' }}>
-        <StyledCardMedia
-          sx={{
-            ...((latestPostLarge || latestPost) && {
-              pt: 'calc(100% * 4 / 3)',
-              '&:after': {
-                top: 0,
-                content: "''",
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
-                bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72),
-              },
-            }),
-            ...(latestPostLarge && {
-              pt: {
-                xs: 'calc(100% * 4 / 3)',
-                sm: 'calc(100% * 3 / 4.66)',
-              },
-            }),
-          }}
-        >
-          {previewImage ? (
-            <StyledCover alt={title} src={previewImage} />
-          ) : (
-            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography variant="body2" sx={{ mb: 2 }}>
-                Loading preview...
-              </Typography>
-            </Box>
-          )}
-        </StyledCardMedia>
-
-        <CardContent sx={{ pb: 0 }}>
-          <Box sx={{ mb: 2 }}>
-            <StyledTitle variant="h5" component="h2" gutterBottom>
-              {title}
+        <CardContent>
+          <StyledCardMedia>
+            {previewImage && <StyledCover src={previewImage} alt="newsletter-preview" />}
+          </StyledCardMedia>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <StyledTitle variant="h6" component="h3">
+              {newsletter.title}
             </StyledTitle>
-            <StyledInfo>
-              <Typography variant="body2">
-                {new Date(createdAt).toLocaleDateString()}
-              </Typography>
-            </StyledInfo>
+            <IconButton onClick={handleClick}>
+              <MoreVertIcon />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+              <MenuItem onClick={() => {
+                handleClose();
+                handleEdit();
+              }}>Edit</MenuItem>
+              <MenuItem onClick={() => {
+                handleClose();
+                handleSendTo();
+              }}>Send to...</MenuItem>
+              <MenuItem onClick={() => {
+                handleClose();
+                handleDuplicate();
+              }}>Duplicate</MenuItem>
+              <MenuItem onClick={() => {
+                handleClose();
+                handleDelete();
+              }}>Delete</MenuItem>
+            </Menu>
+
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" gutterBottom>
             {description}
           </Typography>
+          <StyledInfo>
+            <Typography variant="body2" color="inherit">
+              {new Date(createdAt).toLocaleDateString()}
+            </Typography>
+            {latestPost && (
+              <Button
+                sx={{ marginLeft: 'auto', color: 'primary.main', borderColor: 'primary.main' }}
+                variant="outlined"
+                size="small"
+                component={Link}
+                href={`/newsletters/${slug}`}
+              >
+                Read More
+              </Button>
+            )}
+          </StyledInfo>
         </CardContent>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-          }}
-        >
-          <Link href={`/newsletter/${slug}`} passHref>
-            <Button variant="contained" color="primary">
-              Read More
-            </Button>
-          </Link>
-        </Box>
       </Card>
     </Grid>
   );
 }
-
-
-
-
-
-

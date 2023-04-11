@@ -81,6 +81,23 @@ module.exports = {
     }
   },
 
+  async getNewsletterById(req, res) {
+  try {
+    const { id } = req.params;
+
+    const newsletter = await Newsletter.findById(id).populate("creator");
+
+    if (!newsletter) {
+      return res.status(404).json({ message: "Newsletter not found" });
+    }
+
+    return res.status(200).json({ message: "Newsletter is here", newsletter });
+  } catch (err) {
+    return res.status(400).json({ message: "Error occurred" });
+  }
+},
+
+
   //get newsletters by creator
   async getNewslettersByUser(req, res) {
     try {
@@ -162,6 +179,49 @@ module.exports = {
       res.status(500).json({ message: "Failed to delete the newsletter" });
     }
   },
+
+  async duplicateNewsletter(req, res) {
+  const { newsletterId, newCreatorId } = req.body;
+
+  try {
+    // Get the newsletter to duplicate
+    const newsletterToDuplicate = await Newsletter.findById(newsletterId);
+    if (!newsletterToDuplicate) {
+      return res.status(404).json({ message: "Newsletter not found" });
+    }
+
+    // Create a new newsletter object with the same properties as the original newsletter
+    const duplicatedNewsletter = new Newsletter({
+      title: newsletterToDuplicate.title,
+      description: newsletterToDuplicate.description,
+      HTMLcontent: newsletterToDuplicate.HTMLcontent,
+      JSONcontent: newsletterToDuplicate.JSONcontent,
+      status: newsletterToDuplicate.status,
+      creator: newCreatorId,
+    });
+
+    // Save the duplicated newsletter to the database
+    const savedNewsletter = await duplicatedNewsletter.save();
+
+    // Add the duplicated newsletter to the new creator's list of newsletters
+    await User.updateOne(
+      { _id: newCreatorId },
+      {
+        $push: {
+          newsletters: {
+            nsId: savedNewsletter._id,
+            ns: savedNewsletter.title,
+          },
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Newsletter duplicated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to duplicate the newsletter" });
+  }
+},
+
   //send newsletter
   /* async function sendNewsletterToClient(req, res) {
   const { newsletterId, clientId } = req.params;

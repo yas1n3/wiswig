@@ -5,8 +5,6 @@ import axios from 'axios';
 import Iconify from '../components/iconify';
 import { BlogPostCard, BlogPostsSort, BlogPostsSearch } from '../sections/@dashboard/blog';
 
-
-
 const SORT_OPTIONS = [
   { value: 'latest', label: 'Latest' },
   { value: 'popular', label: 'Popular' },
@@ -26,32 +24,41 @@ export default function BlogPage() {
       });
   }, []);
 
+  const handleNewNewsletterClick = () => {
+    // code to handle "New NS" button click
+  };
+
   return (
     <>
       <Helmet>
-        <title> Dashboard: Blog | Minimal UI </title>
+        <title> NS | Wiswig </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Blog
+            NS
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New Post
+          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleNewNewsletterClick}>
+            New
           </Button>
         </Stack>
 
         <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
-          <BlogPostsSearch posts={newsletters} />
+          <BlogPostsSearch posts={newsletters} setPosts={setNewsletters} />
           <BlogPostsSort options={SORT_OPTIONS} />
         </Stack>
 
         <Grid container spacing={3}>
-          {newsletters.map((newsletter, index) => (
-            <BlogPostCard key={newsletter.id} post={newsletter} index={index} />
+          {newsletters.map((newsletter) => (
+            <BlogPostCard
+              key={newsletter.id}
+              newsletter={newsletter}
+              onNewsletterDelete={(id) => setNewsletters(newsletters.filter((n) => n.id !== id))}
+            />
           ))}
         </Grid>
+
       </Container>
     </>
   );

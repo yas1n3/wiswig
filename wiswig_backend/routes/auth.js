@@ -11,7 +11,7 @@ router.post("/login", auth.loginUser);
 router.post("/newPassowrd", auth.newPasword);
 router.post("/updatePassowrd", auth.updatePassword);
 router.post("/register", auth.register);
-router.post("/addUser", admin.addUser);
+router.post("/adduser", admin.addUser);
 // Verify the account
 router.post("/verify", auth.verify);
 

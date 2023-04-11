@@ -1,25 +1,22 @@
-import React, { useRef } from 'react';
-import EmailEditor from 'react-email-editor';
+import React, { useRef, useState } from 'react';
+import { Container, Stack, Typography, Button, TextField } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
-
-import { Container, Stack, Typography, Button } from '@mui/material';
 import axios from 'axios';
+import EmailEditor from 'react-email-editor';
 import { useAuth } from '../context/AuthContext';
 import Iconify from '../components/iconify';
+import SuccessPopup from './Newsletter/SuccessPopup';
+import NewsletterPopup from './Newsletter/NewsletterPopup';
 
 export default function DashboardAppPage() {
   const emailEditorRef = useRef(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const { user } = useAuth();
 
-  const save = () => {
-    const title = prompt('Enter a title for the newsletter:');
-    const description = prompt('Enter a description for the newsletter:');
-
-    if (!title || !description) {
-      alert('Please enter a title and description for the newsletter.');
-      return;
-    }
-
+  const handleSave = () => {
     emailEditorRef.current?.saveDesign((design) => {
       emailEditorRef.current?.exportHtml((data) => {
         const { html } = data;
@@ -39,7 +36,8 @@ export default function DashboardAppPage() {
           .post('http://localhost:4000/newsletter/add_newsletter', newsletter)
           .then((response) => {
             console.log('Newsletter saved:', response.data);
-            alert('Newsletter saved successfully!');
+            setIsSuccess(true);
+            setIsPopupOpen(false);
           })
           .catch((error) => {
             console.error('Failed to save newsletter:', error);
@@ -47,6 +45,15 @@ export default function DashboardAppPage() {
           });
       });
     });
+  };
+
+
+  const openPopup = () => {
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
   };
 
   const onReady = () => {
@@ -66,14 +73,47 @@ export default function DashboardAppPage() {
           <Typography variant="h4" gutterBottom>
             Newsletter builder
           </Typography>
-          <Button onClick={save} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button onClick={openPopup} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
             Save Design
           </Button>
         </Stack>
         <Container style={{ transform: 'scale(0.925)', margin: '-5% 0 0 -10%' }}>
           <EmailEditor ref={emailEditorRef} onReady={onReady} />
         </Container>
+        {/* <TextField
+          autoFocus
+          margin="dense"
+          id="title"
+          label="Title"
+          type="text"
+          fullWidth
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+        />
+        <TextField
+          margin="dense"
+          id="description"
+          label="Description"
+          type="text"
+          fullWidth
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        /> */}
       </Container>
+      <NewsletterPopup
+        open={isPopupOpen}
+        onClose={closePopup}
+        onSave={(title, description) => {
+          setTitle(title);
+          setDescription(description);
+          handleSave();
+        }}
+        title={title}
+        description={description}
+      />
+
+
+
     </>
   );
 }

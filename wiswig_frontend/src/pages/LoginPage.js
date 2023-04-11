@@ -47,7 +47,7 @@ export function LoginForm() {
     if (success) {
       console.log("isAuthenticated set to true");
       // Login successful, redirect user to page
-      navigate('/dashboard/products');
+      navigate('/dashboard/editor');
     } else {
       // Login failed, handle error
       console.error('Login failed');
