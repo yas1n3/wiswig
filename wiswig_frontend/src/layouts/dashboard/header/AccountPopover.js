@@ -1,24 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
-import axios from 'axios';
+import { useSelector } from 'react-redux';
 
 export default function AccountPopover() {
-  const [user, setUser] = useState({});
   const [open, setOpen] = useState(null);
+  const { user } = useSelector(state => state.user);
+  const photoURL = `/assets/images/avatars/${user.avatar}.jpg`;
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        // const response = await axios.get('/api/user'); // set up a route in the backend to get the logged-in user details
-       // setUser(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchUser();
-  }, 
-  []);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -47,7 +36,7 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={user.photoURL} alt="photoURL" />
+        <Avatar src={photoURL} alt="photoURL" />
       </IconButton>
 
       <Popover
@@ -61,7 +50,7 @@ export default function AccountPopover() {
             p: 0,
             mt: 1.5,
             ml: 0.75,
-            width: 180,
+            width: 250,
             '& .MuiMenuItem-root': {
               typography: 'body2',
               borderRadius: 0.75,

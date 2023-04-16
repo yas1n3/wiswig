@@ -59,23 +59,22 @@ module.exports = {
       const { mail, password } = req.body;
 
       if (!mail || !password) {
+        console.log("No empty fields allowed 🛑");
         return res.status(400).json({ message: "No empty fields allowed 🛑" });
       }
 
       const user = await User.findOne({ user_Mail: mail });
 
       if (!user) {
+        console.log("E-mail is invalid 🛑");
         return res.status(400).json({ message: "E-mail is invalid 🛑" });
       }
 
       const isMatch = await bcrypt.compare(password, user.user_Password);
 
       if (!isMatch) {
+        console.log("Password is wrong 🛑");
         return res.status(400).json({ message: "Password is wrong 🛑" });
-      }
-
-      if (!user.active) {
-        return res.status(400).json({ message: "Account is not active yet" });
       }
 
       const token = jwt.sign({ data: user }, "Hakona_Matata", {
@@ -95,6 +94,7 @@ module.exports = {
       // req.session.token = token;
       // req.session.user = user;
     } catch (error) {
+      console.log(error);
       return res.status(400).json({ message: error.message });
     }
   },

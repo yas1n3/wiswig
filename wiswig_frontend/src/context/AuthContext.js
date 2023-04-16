@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
 
 export const AuthContext = createContext();
 
@@ -8,6 +9,8 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
+  const dispatch = useDispatch();
+
   const [user, setUser] = useState(null);
 
   const login = async (mail, password) => {
@@ -23,14 +26,14 @@ export function AuthProvider({ children }) {
     if (response.ok) {
       const { user } = await response.json();
       setUser(user);
+
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { user } }); // dispatching action to save the user in the Redux store
       return true;
     }
 
     console.error('Error:', response.status);
     return false;
   };
-
-
 
   const logout = () => {
     // Remove the JWT from the browser's cookie storage
@@ -46,7 +49,6 @@ export function AuthProvider({ children }) {
     }
     return null; // or return undefined, depending on your preference
   };
-
 
   const value = {
     user,
