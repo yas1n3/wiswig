@@ -18,7 +18,7 @@ const navConfig = [
   },
   {
     title: 'add users',
-    path: '/dashboard/d',
+    path: '/dashboard/user/adduser',
     icon: icon('ic_user'),
   },
   {

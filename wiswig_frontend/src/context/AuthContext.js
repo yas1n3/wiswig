@@ -17,14 +17,11 @@ export function AuthProvider({ children }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ mail, password }),
+      credentials: 'include', // send cookies with the request
     });
 
     if (response.ok) {
-      const { token, ...user } = await response.json();
-
-      // Store the JWT in the browser's localStorage
-      localStorage.setItem('token', token);
-
+      const { user } = await response.json();
       setUser(user);
       return true;
     }
@@ -33,11 +30,23 @@ export function AuthProvider({ children }) {
     return false;
   };
 
+
+
   const logout = () => {
-    // Remove the JWT from the browser's localStorage
-    localStorage.removeItem('token');
+    // Remove the JWT from the browser's cookie storage
+    document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; HttpOnly; SameSite=None';
     setUser(null);
   };
+
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(';').shift();
+    }
+    return null; // or return undefined, depending on your preference
+  };
+
 
   const value = {
     user,
@@ -47,6 +56,7 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };

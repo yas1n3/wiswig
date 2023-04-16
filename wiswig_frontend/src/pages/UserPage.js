@@ -6,8 +6,6 @@ import { sentenceCase } from 'change-case';
 import { useEffect, useState } from 'react';
 
 
-
-// @mui
 import {
   Card,
   Table,
@@ -94,7 +92,7 @@ export default function UserPage() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [users, setUsers] = useState([]);
-
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -106,7 +104,6 @@ export default function UserPage() {
     };
     fetchUsers();
   }, []);
-
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -167,6 +164,8 @@ export default function UserPage() {
 
   const isNotFound = !filteredUsers.length && !!filterName;
 
+  
+
   return (
     <>
       <Helmet>
@@ -200,9 +199,11 @@ export default function UserPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, user_First_Name, user_Last_Name, user_Mail, role, active } = row;
+                    const { _id, user_First_Name, user_Last_Name, user_Mail, role, active, avatar } = row;
                     const selectedUser = selected.indexOf(_id) !== -1;
                     const name = `${user_First_Name} ${user_Last_Name}`;
+                    const avatarUrl = `/assets/images/avatars/${avatar}.jpg`;
+
 
                     return (
                       <TableRow
@@ -218,8 +219,11 @@ export default function UserPage() {
                           <Checkbox checked={selectedUser} />
                         </TableCell>
                         <TableCell component="th" id={_id} scope="row" padding="none">
-                          {name}
-                        </TableCell>
+                          <Stack direction="row" alignItems="center" spacing={2}>
+                            <Avatar alt={name} src={avatarUrl} />
+                            <Typography variant="subtitle2" noWrap>
+                              {name}
+                            </Typography> </Stack>                       </TableCell>
                         <TableCell align="left">{user_Mail}</TableCell>
                         <TableCell align="left">{role}</TableCell>
                         <TableCell align="left">{active ? 'Active' : 'Inactive'}</TableCell>

@@ -10,8 +10,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { NewslettersContext } from '../../../context/NewslettersContext';
 
-
-
 const StyledCardMedia = styled('div')({
   position: 'relative',
   paddingTop: 'calc(100% * 3 / 4)',
@@ -50,12 +48,13 @@ BlogPostCard.propTypes = {
     HTMLcontent: PropTypes.string,
     status: PropTypes.string,
     createdAt: PropTypes.string,
+    cover: PropTypes.string,
   }),
   index: PropTypes.number,
   slug: PropTypes.string,
 };
 
-export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, slug }) {
+export default function BlogPostCard({ newsletter, onNewsletterDelete, index, slug }) {
   const newslettersContext = useContext(NewslettersContext);
   const { description, HTMLcontent, createdAt } = newsletter;
   const latestPostLarge = index === 0;
@@ -63,6 +62,13 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
 
   const [previewImage, setPreviewImage] = React.useState(null);
   const [newsletters, setNewsletters] = useState([]);
+  const [templateJson, setTemplateJson] = useState({});
+
+  const coverUrl = `/assets/images/covers/${newsletter.cover}.jpg`;
+
+
+
+
 
 
   React.useEffect(() => {
@@ -85,7 +91,6 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
   const handleClose = () => {
     setAnchorEl(null);
   };
-  // const navigate = useNavigate()
   const { data } = useSWR(`http://localhost:4000/newsletter/newsletter/${newsletter._id}`, async (url) => {
     const response = await axios.get(url);
     return response.data;
@@ -96,9 +101,10 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
       console.log(`Newsletter with id ${newsletter._id} has been deleted`);
       mutate(`http://localhost:4000/newsletter/${newsletter._id}`, undefined, true);
       // newslettersContext.deleteNewsletter(newsletter._id);
-      setNewsletters(prevNewsletters =>
-        prevNewsletters.filter(prevNewsletter => prevNewsletter._id !== newsletter._id)
+      setNewsletters((prevNewsletters) =>
+        prevNewsletters.filter((prevNewsletter) => prevNewsletter._id !== newsletter._id)
       );
+      window.location.reload();
     } catch (error) {
       console.error(`Error deleting newsletter with id ${newsletter._id}`, error);
     }
@@ -113,9 +119,18 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
       console.error(`Error duplicating newsletter with id ${newsletter._id}`, error);
     }
   };
-  const handleEdit = () => {
-    console.log(`Editing newsletter with slug: ${slug}`);
+  const navigate = useNavigate();
+  const handleEdit = async () => {
+    try {
+      const response = await axios.get(`http://localhost:4000/newsletter/newsletter/${newsletter._id}`);
+      setTemplateJson(response.data);
+      navigate(`/dashboard/editor/${newsletter._id}`, { templateJson: response.data });
+    } catch (error) {
+      console.error(`Error fetching JSON for newsletter with id ${newsletter._id}`, error);
+    }
   };
+
+
   const handleSendTo = () => {
     console.log(`Sending newsletter with slug: ${slug} to...`);
   };
@@ -125,7 +140,7 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
       <Card sx={{ position: 'relative' }}>
         <CardContent>
           <StyledCardMedia>
-            {previewImage && <StyledCover src={previewImage} alt="newsletter-preview" />}
+            <StyledCover src={coverUrl} alt={newsletter.title} />
           </StyledCardMedia>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <StyledTitle variant="h6" component="h3">
@@ -135,24 +150,39 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete,  index, s
               <MoreVertIcon />
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem onClick={() => {
-                handleClose();
-                handleEdit();
-              }}>Edit</MenuItem>
-              <MenuItem onClick={() => {
-                handleClose();
-                handleSendTo();
-              }}>Send to...</MenuItem>
-              <MenuItem onClick={() => {
-                handleClose();
-                handleDuplicate();
-              }}>Duplicate</MenuItem>
-              <MenuItem onClick={() => {
-                handleClose();
-                handleDelete();
-              }}>Delete</MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  handleEdit();
+                }}
+              >
+                Edit
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  handleSendTo();
+                }}
+              >
+                Send to...
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  handleDuplicate();
+                }}
+              >
+                Duplicate
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  handleDelete();
+                }}
+              >
+                Delete
+              </MenuItem>
             </Menu>
-
           </Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {description}

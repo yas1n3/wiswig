@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Grid, Button, Container, Stack, Typography } from '@mui/material';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { AuthContext } from '../context/AuthContext';
 import Iconify from '../components/iconify';
 import { BlogPostCard, BlogPostsSort, BlogPostsSearch } from '../sections/@dashboard/blog';
+import NewsletterPopup from './Newsletter/NewsletterPopup';
+
+
 
 const SORT_OPTIONS = [
   { value: 'latest', label: 'Latest' },
@@ -13,19 +18,58 @@ const SORT_OPTIONS = [
 
 export default function BlogPage() {
   const [newsletters, setNewsletters] = useState([]);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:4000/newsletter/newsletters')
-      .then(response => {
+    axios
+      .get('http://localhost:4000/newsletter/newsletters')
+      .then((response) => {
         setNewsletters(response.data.newsletters);
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
       });
   }, []);
 
+  const updateNewsletters = useCallback((newNewsletter) => {
+    setNewsletters((newsletters) => [...newsletters, newNewsletter]);
+  }, []);
+
   const handleNewNewsletterClick = () => {
-    // code to handle "New NS" button click
+    setIsPopupOpen(true);
+  };
+
+  const handleSaveNewsletter = (title, description) => {
+
+    // create the request body with the title and description
+    const requestBody = {
+      title,
+      description,
+
+    };
+
+    // make the POST request to the backend URL
+    // const token = getCookie('jwt'); // retrieve the token from cookies
+    fetch('http://localhost:4000/newsletter/add_newsletter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // 'Authorization': `Bearer ${token}`, // add the token to the Authorization header
+      },
+      // credentials: 'include', // include cookies in the request
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // update the state with the new newsletter data
+        updateNewsletters(data);
+        // refresh the page after adding a newsletter
+        // window.location.reload();
+      })
+      .catch((error) => console.error(error));
+
+    setIsPopupOpen(false);
+
   };
 
   return (
@@ -59,7 +103,7 @@ export default function BlogPage() {
           ))}
         </Grid>
 
-      </Container>
+        <NewsletterPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveNewsletter} />      </Container>
     </>
   );
 }

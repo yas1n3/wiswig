@@ -6,6 +6,9 @@ export default function NewsletterPopup(props) {
     const [description, setDescription] = useState('');
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
+        if (event.key === 'Enter') {
+            document.getElementById('description').focus();
+        }
     };
 
     const handleDescriptionChange = (event) => {
@@ -21,7 +24,8 @@ export default function NewsletterPopup(props) {
         if (props.onSave) {
             props.onSave(title, description);
         }
-
+        setTitle('');
+        setDescription('');
     };
 
     useEffect(() => {
@@ -44,8 +48,11 @@ export default function NewsletterPopup(props) {
                     fullWidth
                     value={title}
                     onChange={handleTitleChange}
+                    onKeyPress={handleTitleChange}
                 />
                 <TextField
+                    multiline
+                    rows={4}
                     margin="dense"
                     id="description"
                     label="Description"
@@ -61,4 +68,4 @@ export default function NewsletterPopup(props) {
             </DialogActions>
         </Dialog>
     );
-    }
+}

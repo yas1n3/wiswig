@@ -8,24 +8,29 @@ const userSchema = mongoose.Schema(
     user_Password: String,
     active: { type: Boolean, default: false },
     token: String,
-    creator: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: false,
-      },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
     role: {
       type: String,
       enum: ["admin", "notadmin"],
     },
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'Other'],
+    },
+    avatar: String,
 
     newsletters: [
       {
-        nsId: { type: mongoose.Schema.Types.ObjectId, ref: "Newsletter" },
-        ns: { type: String },
+        newsletterId: { type: mongoose.Schema.Types.ObjectId, ref: "Newsletter" },
+        newsletter: { type: String },
       },
     ],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("User", userSchema);

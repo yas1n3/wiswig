@@ -1,18 +1,32 @@
 const express = require("express");
 const app = express();
-const cors = require('cors');
+const cors = require("cors");
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/auth");
 const nwsRoutes = require("./routes/newsletter");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 
 mongoose.connect("mongodb://127.0.0.1:27017/wiswig");
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
+/* app.use(session({
+  secret: 'crypted key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Put true if https
+})); */
 
 app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/newsletter", nwsRoutes);
+
 const PORT = 4000;
 const server = app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);

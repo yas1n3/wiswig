@@ -3,9 +3,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mailer = require("../middleware/mailer");
 const randomstring = require("randomstring");
+const session = require("express-session");
 
 module.exports = {
   async register(req, res) {
+    const avatars = {
+      male: [
+        "avatar_5",
+        "avatar_12",
+        "avatar_13",
+        "avatar_14",
+        "avatar_15",
+        "avatar_18",
+      ],
+      female: ["avatar_23", "avatar_8", "avatar_16", "avatar_20"],
+    };
+
+    const randomAvatar = (gender) => {
+      const avatarsList = avatars[gender];
+      const randomIndex = Math.floor(Math.random() * avatarsList.length);
+      return avatarsList[randomIndex];
+    };
     try {
       const emailExist = await User.findOne({ user_Mail: req.body.mail });
       if (emailExist) return res.status(400).send("Email already exists");
@@ -18,47 +36,22 @@ module.exports = {
         user_Mail: req.body.mail,
         user_Password: hashedPassword,
         active: false,
-        role: "notadmin",
+        role: req.body.role,
+        gender: req.body.gender,
         token: null,
         newsletters: [],
+        avatar: randomAvatar(req.body.gender),
       });
 
       await user.save();
 
-      // Send email with secret token
-      const mailOptions = {
-        from: "wiswig@mobelite.fr",
-        to: user.user_Mail,
-        subject: "Account Activation Link",
-        text:
-          "Hello " +
-          user.user_First_Name +
-          ",\n\n" +
-          "Please click on the following link to activate your account:\n\n" +
-          "http://" +
-          req.headers.host +
-          "/api/activate/" +
-          secretToken +
-          "\n\n" +
-          "Thank you for registering with us.\n",
-      };
-
-      mailer.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error);
-        } else {
-          console.log("Email sent: " + info.response);
-        }
-      });
-
-      res
-        .status(200)
-        .send(
-          "User registered successfully! Please check your email to activate your account."
-        );
+      res.status(200).send("User registered successfully!");
     } catch (err) {
-      res.status(500).send("Server Error: " + err);
+      res.status(400).send("Server Error: " + err);
     }
+  },
+  async initialize(req, res) {
+    res.status(200).send("Initiatiaized!");
   },
 
   async loginUser(req, res) {
@@ -89,7 +82,18 @@ module.exports = {
         expiresIn: "72h",
       });
 
+      res.cookie("token", token, {
+        httpOnly: true,
+        maxAge: 86400000, // 24 hours
+        secure: false, // set the 'secure' flag to true if you're using HTTPS
+        sameSite: "none", // set this flag to 'strict' to prevent CSRF attacks and steer away from the nasty hacker after setting up same origin
+      });
+
       return res.status(200).json({ message: "login successful", user, token });
+
+      // this is used for the session
+      // req.session.token = token;
+      // req.session.user = user;
     } catch (error) {
       return res.status(400).json({ message: error.message });
     }
@@ -146,6 +150,15 @@ module.exports = {
     } catch (err) {
       res.status(400).send("Error occurred");
     }
+  },
+
+  async requireAuth(req, res, next) {
+    if (!req.session || !req.session.token || !req.session.user) {
+      return res.status(401).json({ message: "Unauthorized 🚫" });
+    }
+
+    // If authentication is successful, call the next middleware function
+    next();
   },
 
   /*   async forgotPassword(req, res) {

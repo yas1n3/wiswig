@@ -17,5 +17,5 @@ router.get("/usernewsletters/:userid", NewsletterCtrl.getNewslettersByUser);
 router.post("/add_newsletter", NewsletterCtrl.createNewsletter);
 router.post("/delete/:id", NewsletterCtrl.deleteNewsletter);
 router.post("/duplicate/:id", NewsletterCtrl.duplicateNewsletter);
-
+router.put("/editnewsletter/:id", NewsletterCtrl.editNewsletter);
 module.exports = router;

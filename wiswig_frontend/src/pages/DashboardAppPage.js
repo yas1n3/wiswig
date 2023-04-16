@@ -1,29 +1,43 @@
-import React, { useRef, useState } from 'react';
-import { Container, Stack, Typography, Button, TextField } from '@mui/material';
-import { Helmet } from 'react-helmet-async';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+
 import EmailEditor from 'react-email-editor';
+import { Helmet } from 'react-helmet-async';
+
+import { Container, Stack, Typography, Button } from '@mui/material';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Iconify from '../components/iconify';
-import SuccessPopup from './Newsletter/SuccessPopup';
-import NewsletterPopup from './Newsletter/NewsletterPopup';
 
 export default function DashboardAppPage() {
   const emailEditorRef = useRef(null);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const { user } = useAuth();
+  const { id } = useParams();
+  const [templateJson, setTemplateJson] = useState(null);
+  const [newsletterTitle, setNewsletterTitle] = useState("");
 
-  const handleSave = () => {
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4000/newsletter/newsletter/${id}`);
+        setTemplateJson(response.data);
+        setNewsletterTitle(response.data.title); // Set the newsletter title
+      } catch (error) {
+        console.error(`Error fetching JSON for newsletter with id ${id}`, error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+
+  const save = () => {
     emailEditorRef.current?.saveDesign((design) => {
       emailEditorRef.current?.exportHtml((data) => {
         const { html } = data;
 
         const newsletter = {
-          title,
-          description,
           HTMLcontent: html,
           JSONcontent: JSON.stringify(design),
         };
@@ -33,11 +47,10 @@ export default function DashboardAppPage() {
         }
 
         axios
-          .post('http://localhost:4000/newsletter/add_newsletter', newsletter)
+          .put(`http://localhost:4000/newsletter/editnewsletter/${id}`, newsletter)
           .then((response) => {
             console.log('Newsletter saved:', response.data);
-            setIsSuccess(true);
-            setIsPopupOpen(false);
+            alert('Newsletter saved successfully!');
           })
           .catch((error) => {
             console.error('Failed to save newsletter:', error);
@@ -47,20 +60,10 @@ export default function DashboardAppPage() {
     });
   };
 
-
-  const openPopup = () => {
-    setIsPopupOpen(true);
-  };
-
-  const closePopup = () => {
-    setIsPopupOpen(false);
-  };
-
   const onReady = () => {
-    // editor is ready
-    // you can load your template here;
-    // const templateJson = {};
-    // emailEditorRef.current.editor.loadDesign(templateJson);
+    if (templateJson) {
+      emailEditorRef.current?.loadDesign(templateJson);
+    }
   };
 
   return (
@@ -71,49 +74,17 @@ export default function DashboardAppPage() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Newsletter builder
+            Newsletter builder {newsletterTitle}
           </Typography>
-          <Button onClick={openPopup} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+
+          <Button onClick={save} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
             Save Design
           </Button>
         </Stack>
         <Container style={{ transform: 'scale(0.925)', margin: '-5% 0 0 -10%' }}>
           <EmailEditor ref={emailEditorRef} onReady={onReady} />
         </Container>
-        {/* <TextField
-          autoFocus
-          margin="dense"
-          id="title"
-          label="Title"
-          type="text"
-          fullWidth
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-        />
-        <TextField
-          margin="dense"
-          id="description"
-          label="Description"
-          type="text"
-          fullWidth
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-        /> */}
       </Container>
-      <NewsletterPopup
-        open={isPopupOpen}
-        onClose={closePopup}
-        onSave={(title, description) => {
-          setTitle(title);
-          setDescription(description);
-          handleSave();
-        }}
-        title={title}
-        description={description}
-      />
-
-
-
     </>
   );
 }

@@ -5,13 +5,14 @@ const newsletterSchema = mongoose.Schema(
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: false,
+      required: true,
     },
     title: String,
     description: String,
     HTMLcontent: String,
     JSONcontent: String,
     status: String,
+    cover: String,
   },
   { timestamps: true }
 );

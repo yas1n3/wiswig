@@ -15,11 +15,12 @@ module.exports = {
         if (err.expiredAt < new Date()) {
           return res.status(400).json({ message: 'Token has expired', token: null });
         }
-        next();
+        return res.status(401).json({ message: 'Invalid or expired token', token: null });
       }
       req.user = decoded.data;
       next();
     });
+
   }
 
 };
