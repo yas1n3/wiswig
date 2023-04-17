@@ -5,7 +5,6 @@ import { sentenceCase } from 'change-case';
 
 import { useEffect, useState } from 'react';
 
-
 import {
   Card,
   Table,
@@ -32,20 +31,19 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
-
 // ----------------------------------------------------------------------
+
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'user_Mail', label: 'Email', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
-  { id: 'active', label: 'Active', alignRight: false },
-  // { id: 'createdAt', label: 'Created At', alignRight: false },
-  // { id: 'updatedAt', label: 'Updated At', alignRight: false },
+  { id: 'active', label: 'Status', alignRight: false },
+  { id: '' },
 ];
 
-
 // ----------------------------------------------------------------------
+
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -91,19 +89,20 @@ export default function UserPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [users, setUsers] = useState([]);
-  
+  const [USERLIST, setUSERLIST] = useState([]);
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:4000/admin/users');
-        setUsers(response.data);
+        setUSERLIST(response.data);
       } catch (error) {
         console.error(error);
       }
     };
     fetchUsers();
   }, []);
+
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -121,7 +120,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = users.map((n) => n.name);
+      const newSelecteds = USERLIST.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -157,14 +156,11 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
-
+  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
-
-  
 
   return (
     <>
@@ -192,42 +188,49 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={users.length}
+                  rowCount={USERLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, user_First_Name, user_Last_Name, user_Mail, role, active, avatar } = row;
-                    const selectedUser = selected.indexOf(_id) !== -1;
-                    const name = `${user_First_Name} ${user_Last_Name}`;
+                    const { _id, name, user_Mail, role, active, avatar } = row;
+                    const selectedUser = selected.indexOf(name) !== -1;
                     const avatarUrl = `/assets/images/avatars/${avatar}.jpg`;
-
+                    
 
                     return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, _id)}
-                        role="checkbox"
-                        aria-checked={selectedUser}
-                        tabIndex={-1}
-                        key={_id}
-                        selected={selectedUser}
-                      >
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} />
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
-                        <TableCell component="th" id={_id} scope="row" padding="none">
+
+                        <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
                             <Avatar alt={name} src={avatarUrl} />
                             <Typography variant="subtitle2" noWrap>
                               {name}
-                            </Typography> </Stack>                       </TableCell>
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+
                         <TableCell align="left">{user_Mail}</TableCell>
+
                         <TableCell align="left">{role}</TableCell>
-                        <TableCell align="left">{active ? 'Active' : 'Inactive'}</TableCell>
+
                         
+
+                        <TableCell align="left">
+                          <Label color={active ? 'success' : 'error'}>{sentenceCase(active.toString())}</Label>
+                        </TableCell>
+
+
+                        <TableCell align="right">
+                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                            <Iconify icon={'eva:more-vertical-fill'} />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -254,7 +257,7 @@ export default function UserPage() {
                           <Typography variant="body2">
                             No results found for &nbsp;
                             <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
+                            <br /> Try checking for something else.
                           </Typography>
                         </Paper>
                       </TableCell>
@@ -268,7 +271,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={users.length}
+            count={USERLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -308,3 +311,4 @@ export default function UserPage() {
     </>
   );
 }
+

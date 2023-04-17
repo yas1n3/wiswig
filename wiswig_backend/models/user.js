@@ -15,14 +15,18 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "notadmin"],
+      enum: ["Admin", "User"],
     },
     gender: {
       type: String,
       enum: ['male', 'female', 'Other'],
     },
     avatar: String,
-
+    name: {
+      type: String, default: function () {
+        return `${this.user_First_Name} ${this.user_Last_Name}`;
+      }
+    },
     newsletters: [
       {
         newsletterId: { type: mongoose.Schema.Types.ObjectId, ref: "Newsletter" },

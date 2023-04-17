@@ -6,16 +6,19 @@ import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { LoadingButton } from '@mui/lab';
-import { Box, Card, Grid, Stack, Typography, MenuItem, TextField } from '@mui/material';
+import { Box, Card, Grid, Stack, Typography, MenuItem, TextField, Button } from '@mui/material';
 import axios from 'axios';
 import Label from '../../components/label';
 import { RHFSelect, RHFSwitch, RHFTextField } from '../../components/hook-form';
+import Iconify from '../../components/iconify';
 
-
-
-const options = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'user', label: 'User' },
+const u_options = [
+  { value: 'Admin', label: 'Admin' },
+  { value: 'User', label: 'User' },
+];
+const g_options = [
+  { value: 'Male', label: 'male' },
+  { value: 'Female', label: 'female' },
 ];
 
 AddUserForm.propTypes = {
@@ -27,9 +30,12 @@ export default function AddUserForm({ isEdit, currentUser }) {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const NewUserSchema = Yup.object().shape({
-    name: Yup.string().required('Name is required'),
-    email: Yup.string().required('Email is required').email(),
+    user_First_Name: Yup.string().required('First Name is required'),
+    user_Last_Name: Yup.string().required('Last Name is required'),
+    user_Mail: Yup.string().required('Email is required').email(),
+    user_Password: Yup.string().required('Password is required').min(4, 'Password must be at least 4 characters'),
     role: Yup.string().required('Role is required'),
+    gender: Yup.string().required('Gender is required'),
   });
 
   const defaultValues = useMemo(() => {
@@ -39,6 +45,7 @@ export default function AddUserForm({ isEdit, currentUser }) {
       user_Mail: '',
       user_Password: '',
       role: '',
+      gender: '',
     };
     if (isEdit && currentUser) {
       return {
@@ -67,6 +74,7 @@ export default function AddUserForm({ isEdit, currentUser }) {
   const onSubmit = useCallback(
     async (data) => {
       try {
+        console.log('Submitting data:', data);
         await axios.post('http://localhost:4000/auth/addUser', data);
         reset();
         enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
@@ -74,14 +82,13 @@ export default function AddUserForm({ isEdit, currentUser }) {
       } catch (error) {
         console.error(error);
       }
-
     },
     [reset, enqueueSnackbar, navigate, isEdit]
   );
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} id="add-user-form">
         <Grid container spacing={3} sx={{ width: '100%', mx: 'auto', paddingLeft: '5%' }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ py: 10, px: 3, width: 800, mx: 'auto' }}>
@@ -103,14 +110,7 @@ export default function AddUserForm({ isEdit, currentUser }) {
                     <Controller
                       name="user_First_Name"
                       control={control}
-                      render={({ field }) => (
-                        <RHFTextField
-                          {...field}
-                          required
-                          fullWidth
-                          label="First Name"
-                        />
-                      )}
+                      render={({ field }) => <RHFTextField {...field} required fullWidth label="First Name" />}
                     />
                   </Box>
                 </Grid>
@@ -122,19 +122,11 @@ export default function AddUserForm({ isEdit, currentUser }) {
                     <Controller
                       name="user_Last_Name"
                       control={control}
-                      render={({ field }) => (
-                        <RHFTextField
-                          {...field}
-                          required
-                          fullWidth
-                          label="Last Name"
-                        />
-                      )}
+                      render={({ field }) => <RHFTextField {...field} required fullWidth label="Last Name" />}
                     />
                   </Box>
                 </Grid>
               </Grid>
-
 
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
@@ -155,38 +147,73 @@ export default function AddUserForm({ isEdit, currentUser }) {
                 </Grid>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ mb: 5 }}>
-                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                    Role
-                  </Typography>
-                  <Controller
-                    name="role"
-                    control={control}
-                    render={({ field }) => (
-                      <RHFSelect {...field} label="Role" required variant="outlined" fullWidth>
-                        <option value="" />
-                        {options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </RHFSelect>
-                    )}
-                  />
-                  <Typography variant="caption" sx={{ mt: 1 }}>
-                    Please select a role from the options above.
-                  </Typography>
-                </Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ mb: 5 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                      Role
+                    </Typography>
+                    <Controller
+                      name="role"
+                      control={control}
+                      render={({ field }) => (
+                        <RHFSelect {...field} label="Role" required variant="outlined" fullWidth>
+                          <option value="" />
+                          {u_options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </RHFSelect>
+                      )}
+                    />
+                    <Typography variant="caption" sx={{ mt: 1 }}>
+                      Please select a role from the options above.
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ mb: 5 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                      Gender
+                    </Typography>
+                    <Controller
+                      name="gender"
+                      control={control}
+                      render={({ field }) => (
+                        <RHFSelect {...field} label="Gender" required variant="outlined" fullWidth>
+                          <option value="" />
+                          {g_options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </RHFSelect>
+                      )}
+                    />
+                    <Typography variant="caption" sx={{ mt: 1 }}>
+                      Please select a gender from the options above.
+                    </Typography>
+                  </Box>
+                </Grid>
               </Grid>
+            <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                form="add-user-form" // <- make sure this matches the form ID
+              >
+                {isSubmitting ? <LoadingButton loading /> : 'Submit'}
+              </Button> 
 
-{/*               <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+   
+        {/*       <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleSubmit}>
                 Save
               </Button> */}
 
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting} onClick={handleSubmit}>
+         {/*      <LoadingButton type="submit" variant="contained" loading={isSubmitting} onClick={handleSubmit}>
                 Save
-              </LoadingButton>
+              </LoadingButton> */}
             </Card>
           </Grid>
         </Grid>

@@ -5,10 +5,10 @@ module.exports.addUser = async (req, res, next) => {
   
   try {
     // Verify if user is admin
-    const creator = await User.findById(req.user._id);
-    if (creator.role !== "admin") {
+/*     const creator = await User.findById(req.user._id);
+    if (creator.role !== "Admin") {
       return res.status(401).json({ message: "You don't have permission to create a new user." });
-    }
+    } */
     
     // Create new user
     const newUser = new User({
@@ -17,7 +17,7 @@ module.exports.addUser = async (req, res, next) => {
       user_Mail,
       user_Password,
       role,
-      creator: req.user._id,
+      // creator: req.user._id,
     });
     
     await newUser.save();
