@@ -36,6 +36,7 @@ export default function Router() {
         { path: 'products', element: <ProductsPage /> },
         { path: 'newsletters', element: <BlogPage /> },
         { path: 'user/adduser', element: <AddUserForm /> },
+        { path: 'user/edit/:id', element: <AddUserForm /> },
 
       ],
     },

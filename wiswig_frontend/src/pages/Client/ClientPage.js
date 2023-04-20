@@ -1,9 +1,8 @@
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import {
@@ -25,7 +24,6 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import AddUserForm from './User/AddUserForm';
 // components
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -37,9 +35,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'user_Mail', label: 'Email', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'active', label: 'Status', alignRight: false },
+  { id: 'client_Mail', label: 'Email', alignRight: false },
+  { id: 'clientGroup', label: 'Company', alignRight: false },
   { id: '' },
 ];
 
@@ -69,12 +66,12 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_client) => _client.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function UserPage() {
+export default function ClientPage() {
   const [open, setOpen] = useState(null);
 
   const [page, setPage] = useState(0);
@@ -89,38 +86,26 @@ export default function UserPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [USERLIST, setUSERLIST] = useState([]);
-
-  const [currentUser, setCurrentUser] = useState(null);
+  const [CLIENTLIST, setCLIENTLIST] = useState([]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchClients = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/admin/users');
-        setUSERLIST(response.data);
+        const response = await axios.get('http://localhost:4000/client/clients');
+        setCLIENTLIST(response.data);
       } catch (error) {
         console.error(error);
       }
     };
-    fetchUsers();
+    fetchClients();
   }, []);
 
-  const handleOpenMenu = (event, _id) => {
+  const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
-    console.log(_id); // add this line
-    console.log(filteredUsers); // add this line
-
-    const user = filteredUsers.find((user) => user.id === _id);
-    setCurrentUser(user);
-    console.log(user);
-    console.log(_id);
-    console.log(currentUser); // add this line
-
   };
 
   const handleCloseMenu = () => {
     setOpen(null);
-    setCurrentUser(null);
   };
 
   const handleRequestSort = (event, property) => {
@@ -131,7 +116,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = CLIENTLIST.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -167,40 +152,24 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const handleEdit = () => {
-    if (currentUser) {
-      navigate(`/dashboard/user/edit/${currentUser._id}`, {
-        state: {
-          isEdit: true,
-          currentUser,
-        },
-      });
-      handleCloseMenu();
-    }
-  };
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
-  const handleDelete = () => {};
-
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-
-  const isNotFound = !filteredUsers.length && !!filterName;
-  const navigate = useNavigate();
-
+  const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
+  const isNotFound = !filteredClients.length && !!filterName;
+    const navigate = useNavigate();
   return (
     <>
       <Helmet>
-        <title> User | Wiswig </title>
+        <title> Client | Wiswig </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Client
           </Typography>
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
+            New Client
           </Button>
         </Stack>
 
@@ -214,39 +183,34 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={CLIENTLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, name, user_Mail, role, active, avatar } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-                    const avatarUrl = `/assets/images/avatars/${avatar}.jpg`;
+                  {filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    const { _id, name, client_Mail, clientGroup } = row;
+                    const selectedClient = selected.indexOf(name) !== -1;
 
                     return (
-                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedClient}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedClient} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <Avatar alt={name} />
                             <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{user_Mail}</TableCell>
+                        <TableCell align="left">{client_Mail}</TableCell>
 
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={active ? 'success' : 'error'}>{sentenceCase(active.toString())}</Label>
-                        </TableCell>
+                        <TableCell align="left">{clientGroup}</TableCell>
 
                         <TableCell align="right">
                           <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
@@ -293,7 +257,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={CLIENTLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -320,23 +284,12 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem
-          onClick={() => {
-            handleEdit();
-          }}
-        >
+        <MenuItem>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem
-          sx={{ color: 'error.main' }}
-          onClick={() => {
-            handleDelete();
-            console.log(currentUser);
-            handleCloseMenu();
-          }}
-        >
+        <MenuItem sx={{ color: 'error.main' }}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

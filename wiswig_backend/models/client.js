@@ -5,7 +5,7 @@ const clientSchema = mongoose.Schema(
     client_First_Name: String,
     client_Last_Name: String,
     client_Mail: String,
-    client_Password: String,
+    clientGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'clientGroup' }
   },
   { timestamps: true }
 );

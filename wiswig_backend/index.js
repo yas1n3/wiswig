@@ -4,6 +4,8 @@ const cors = require("cors");
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/auth");
 const nwsRoutes = require("./routes/newsletter");
+const clientRoutes = require('./routes/client');
+const cGroupRoutes = require('./routes/clientGroup');
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -26,6 +28,8 @@ app.use(cookieParser());
 app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/newsletter", nwsRoutes);
+app.use("/client", clientRoutes);
+app.use('/company', cGroupRoutes);
 
 const PORT = 4000;
 const server = app.listen(PORT, () => {
