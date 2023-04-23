@@ -105,16 +105,16 @@ export default function UserPage() {
     fetchUsers();
   }, []);
 
-  const handleOpenMenu = (event, _id) => {
+  const handleOpenMenu = (event, _user) => {
     setOpen(event.currentTarget);
-    console.log(_id); // add this line
-    console.log(filteredUsers); // add this line
+    // console.log(_user); 
+    // console.log(filteredUsers); 
 
-    const user = filteredUsers.find((user) => user.id === _id);
-    setCurrentUser(user);
-    console.log(user);
-    console.log(_id);
-    console.log(currentUser); // add this line
+    // const user = filteredUsers.find((user) => user.id === _id);
+    setCurrentUser(_user);
+/*     console.log(user);
+    console.log(_id); */
+    console.log(currentUser); 
 
   };
 
@@ -322,6 +322,7 @@ export default function UserPage() {
       >
         <MenuItem
           onClick={() => {
+            setCurrentUser(_user);
             handleEdit();
           }}
         >
@@ -333,7 +334,6 @@ export default function UserPage() {
           sx={{ color: 'error.main' }}
           onClick={() => {
             handleDelete();
-            console.log(currentUser);
             handleCloseMenu();
           }}
         >
