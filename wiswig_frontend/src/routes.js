@@ -3,15 +3,15 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
 //
-import BlogPage from './pages/BlogPage';
+import NewsletterPage from './pages/NewsletterPage';
 import UserPage from './pages/UserPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import AddUserForm from './pages/User/AddUserForm';
+import ClientPage from './pages/Client/ClientPage';
 
-import SignUp from './pages/User/SignUp';
 
 // ----------------------------------------------------------------------
 
@@ -34,9 +34,10 @@ export default function Router() {
 
         { path: 'user', element: <UserPage /> },
         { path: 'products', element: <ProductsPage /> },
-        { path: 'newsletters', element: <BlogPage /> },
+        { path: 'newsletters', element: <NewsletterPage /> },
         { path: 'user/adduser', element: <AddUserForm /> },
         { path: 'user/edit/:id', element: <AddUserForm /> },
+        { path: 'client', element: <ClientPage /> },
 
       ],
     },

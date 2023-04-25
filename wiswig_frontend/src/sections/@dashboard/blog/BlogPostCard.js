@@ -188,6 +188,7 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
             {description}
           </Typography>
           <StyledInfo>
+            
             <Typography variant="body2" color="inherit">
               {new Date(createdAt).toLocaleDateString()}
             </Typography>

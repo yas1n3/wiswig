@@ -16,7 +16,7 @@ const SORT_OPTIONS = [
   { value: 'oldest', label: 'Oldest' },
 ];
 
-export default function BlogPage() {
+export default function NewsletterPage() {
   const [newsletters, setNewsletters] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -56,15 +56,17 @@ export default function BlogPage() {
         'Content-Type': 'application/json',
         // 'Authorization': `Bearer ${token}`, // add the token to the Authorization header
       },
-      // credentials: 'include', // include cookies in the request
+      credentials: 'include', // include cookies in the request
       body: JSON.stringify(requestBody),
+
+
     })
       .then((response) => response.json())
       .then((data) => {
         // update the state with the new newsletter data
+        console.log(requestBody);
         updateNewsletters(data);
-        // refresh the page after adding a newsletter
-        // window.location.reload();
+        window.location.reload();
       })
       .catch((error) => console.error(error));
 

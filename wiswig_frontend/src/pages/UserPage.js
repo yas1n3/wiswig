@@ -107,7 +107,7 @@ export default function UserPage() {
 
   const handleOpenMenu = (event, _user) => {
     setOpen(event.currentTarget);
-    // console.log(_user); 
+    console.log(_user); 
     // console.log(filteredUsers); 
 
     // const user = filteredUsers.find((user) => user.id === _id);
@@ -322,7 +322,7 @@ export default function UserPage() {
       >
         <MenuItem
           onClick={() => {
-            setCurrentUser(_user);
+          
             handleEdit();
           }}
         >

@@ -84,7 +84,7 @@ module.exports = {
       res.cookie("token", token, {
         httpOnly: true,
         maxAge: 86400000, // 24 hours
-        secure: false, // set the 'secure' flag to true if you're using HTTPS
+        secure: true, // set the 'secure' flag to true if you're using HTTPS
         sameSite: "none", // set this flag to 'strict' to prevent CSRF attacks and steer away from the nasty hacker after setting up same origin
       });
 
