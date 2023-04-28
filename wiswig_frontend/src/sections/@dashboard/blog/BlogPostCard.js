@@ -57,8 +57,8 @@ BlogPostCard.propTypes = {
 export default function BlogPostCard({ newsletter, onNewsletterDelete, index, slug }) {
   const newslettersContext = useContext(NewslettersContext);
   const { description, HTMLcontent, createdAt } = newsletter;
-  const latestPostLarge = index === 0;
-  const latestPost = index === 1 || index === 2;
+
+
 
   const [previewImage, setPreviewImage] = React.useState(null);
   const [newsletters, setNewsletters] = useState([]);
@@ -122,11 +122,10 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
   const navigate = useNavigate();
   const handleEdit = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/newsletter/newsletter/${newsletter._id}`);
-      setTemplateJson(response.data);
-      navigate(`/dashboard/editor/${newsletter._id}`, { templateJson: response.data });
+
+      navigate(`/dashboard/editor/${newsletter._id}`, { state: { templateJson: newsletter.jsonContent } });
     } catch (error) {
-      console.error(`Error fetching JSON for newsletter with id ${newsletter._id}`, error);
+      console.error(`Error navigating to editor for newsletter with id ${newsletter._id}`, error);
     }
   };
 
@@ -136,7 +135,7 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
   };
 
   return (
-    <Grid item xs={12} sm={latestPostLarge ? 12 : 6} md={latestPostLarge ? 6 : 3}>
+    <Grid item xs={12} sm={6} md={4}>
       <Card sx={{ position: 'relative' }}>
         <CardContent>
           <StyledCardMedia>
@@ -188,21 +187,11 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
             {description}
           </Typography>
           <StyledInfo>
-            
+
             <Typography variant="body2" color="inherit">
               {new Date(createdAt).toLocaleDateString()}
             </Typography>
-            {latestPost && (
-              <Button
-                sx={{ marginLeft: 'auto', color: 'primary.main', borderColor: 'primary.main' }}
-                variant="outlined"
-                size="small"
-                component={Link}
-                href={`/newsletters/${slug}`}
-              >
-                Read More
-              </Button>
-            )}
+
           </StyledInfo>
         </CardContent>
       </Card>

@@ -77,10 +77,11 @@ export default function AddClientForm({ isEdit, currentClient }) {
 
   useEffect(() => {
     async function getClientGroups() {
+
       try {
         const response = await axios.get('http://localhost:4000/company/companies');
         const options = response.data.map((clientGroup) => ({
-          value: clientGroup.id,
+          value: clientGroup._id,
           label: clientGroup.name,
         }));
         setClientGroupOptions(options);
@@ -156,7 +157,7 @@ export default function AddClientForm({ isEdit, currentClient }) {
                       render={({ field }) => (
                         <RHFSelect {...field} label="Client Group" required variant="outlined" fullWidth>
                           <option value="" />
-                          {options.map((option) => (
+                          {clientGroupOptions.map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>

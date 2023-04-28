@@ -97,7 +97,6 @@ module.exports = {
     try {
       const newsletters = await Newsletter.find({})
         .populate("creator")
-        .sort({ createdAt: -1 });
       return res
         .status(200)
         .json({ message: "Newsletters are here", newsletters });

@@ -93,6 +93,7 @@ export default function UserPage() {
 
   const [currentUser, setCurrentUser] = useState(null);
 
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -104,18 +105,12 @@ export default function UserPage() {
     };
     fetchUsers();
   }, []);
-
-  const handleOpenMenu = (event, _user) => {
+  const handleClickMenuItem = (event, userId) => {
     setOpen(event.currentTarget);
-    console.log(_user); 
-    // console.log(filteredUsers); 
-
-    // const user = filteredUsers.find((user) => user.id === _id);
-    setCurrentUser(_user);
-/*     console.log(user);
-    console.log(_id); */
-    console.log(currentUser); 
-
+    const userIndex = filteredUsers.findIndex((user) => user._id === userId);
+    const user = filteredUsers[userIndex];
+    setCurrentUser(user);
+    console.log(user);
   };
 
   const handleCloseMenu = () => {
@@ -249,7 +244,7 @@ export default function UserPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={(e) => handleClickMenuItem(e, _id)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -322,7 +317,6 @@ export default function UserPage() {
       >
         <MenuItem
           onClick={() => {
-          
             handleEdit();
           }}
         >

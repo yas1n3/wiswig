@@ -2,12 +2,13 @@ const Client = require("../models/client");
 const ClientGroup = require("../models/clientGroup");
 
 module.exports.addClient = async (req, res, next) => {
-    const { client_First_Name, client_Last_Name, client_Mail, clientGroup } = req.body;
+    const { client_First_Name, client_Last_Name, client_Mail, clientGroupId } = req.body;
 
     try {
-        const group = await ClientGroup.findById(clientGroup);
+        const group = await ClientGroup.findById(clientGroupId);
         if (!group) {
             return res.status(404).json({ message: "Client group not found." });
+            
         }
 
         const newClient = new Client({
@@ -22,6 +23,7 @@ module.exports.addClient = async (req, res, next) => {
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: "Something went wrong." });
+    
     }
 };
 

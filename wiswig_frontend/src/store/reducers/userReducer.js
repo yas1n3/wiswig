@@ -1,6 +1,7 @@
 const initialState = {
     user: null,
-    error: null
+    error: null,
+    isLoggedIn: false
 };
 
 const userReducer = (state = initialState, action) => {
@@ -9,19 +10,24 @@ const userReducer = (state = initialState, action) => {
             return {
                 ...state,
                 user: action.payload.user,
-                error: null
+                error: null,
+                isLoggedIn: true
             };
         case 'LOGIN_FAILURE':
             return {
                 ...state,
                 user: null,
-                error: action.payload.error
+                error: action.payload.error,
+                isLoggedIn: false
+
             };
         case 'LOGOUT':
             return {
                 ...state,
                 user: null,
-                error: null
+                error: null,
+                isLoggedIn: false
+
             };
         default:
             return state;
