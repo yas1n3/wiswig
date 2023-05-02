@@ -161,6 +161,19 @@ module.exports = {
     next();
   },
 
+
+  async logout(req, res) {
+    try {
+      res.clearCookie('jwt');
+
+      res.status(200).send('Logged out successfully.');
+    }
+    catch (err) {
+      res.status(400).send("Error occurred");
+    }
+  },
+
+
   /*   async forgotPassword(req, res) {
       try {
         const user = await User.findOne({ mail: req.body.mail });

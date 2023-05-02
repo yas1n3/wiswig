@@ -40,17 +40,21 @@ export function LoginForm() {
   const { login } = useAuth();
   const [mail, setMail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const success = await login(mail, password);
-    if (success) {
-      console.log("isAuthenticated set to true");
-      // Login successful, redirect user to page
-      navigate('/dashboard/editor');
-    } else {
-      // Login failed, handle error
-      console.error('Login failed');
+    try {
+      const success = await login(mail, password);
+      if (success) {
+        navigate('/dashboard/editor');
+      } else {
+        console.error('Login failed');
+        setError('Invalid email or password');
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Something went wrong, please try again');
     }
   };
 
@@ -67,6 +71,11 @@ export function LoginForm() {
         <Button fullWidth size="large" type="submit" variant="contained">
           Sign in
         </Button>
+        {error && (
+          <Typography variant="body2" sx={{ color: 'error.main' }}>
+            {error}
+          </Typography>
+        )}
       </Stack>
     </form>
   );
@@ -74,13 +83,6 @@ export function LoginForm() {
 
 export default function LoginPage() {
   const mdUp = useResponsive('up', 'md');
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  if (isAuthenticated) {
-    navigate('/dashboard/products');
-    return null;
-  }
 
   return (
     <>

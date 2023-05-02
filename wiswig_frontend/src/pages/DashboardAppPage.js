@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-
 import EmailEditor from 'react-email-editor';
 import { Helmet } from 'react-helmet-async';
-
 import { Container, Stack, Typography, Button } from '@mui/material';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -11,26 +9,20 @@ import Iconify from '../components/iconify';
 
 export default function DashboardAppPage() {
   const emailEditorRef = useRef(null);
-  const { user } = useAuth();
+
   const { id } = useParams();
   const [templateJson, setTemplateJson] = useState(null);
   const [newsletterTitle, setNewsletterTitle] = useState("");
+  const location = useLocation();
+
 
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:4000/newsletter/newsletter/${id}`);
-        setTemplateJson(response.data);
-        setNewsletterTitle(response.data.title); // Set the newsletter title
-      } catch (error) {
-        console.error(`Error fetching JSON for newsletter with id ${id}`, error);
-      }
-    };
-
-    fetchData();
-  }, [id]);
-
+    if (location.state && location.state.newsletter) {
+      setTemplateJson(location.state.newsletter.JSONcontent);
+      setNewsletterTitle(location.state.newsletter.title);
+    }
+  }, [location.state]);
 
   const save = () => {
     emailEditorRef.current?.saveDesign((design) => {
@@ -41,10 +33,10 @@ export default function DashboardAppPage() {
           HTMLcontent: html,
           JSONcontent: JSON.stringify(design),
         };
-
-        if (user) {
+// add a verification if necessary
+/*         if (user) {
           newsletter.creator = user._id;
-        }
+        } */
 
         axios
           .put(`http://localhost:4000/newsletter/editnewsletter/${id}`, newsletter)

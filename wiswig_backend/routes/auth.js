@@ -16,6 +16,8 @@ router.post("/updatePassowrd", auth.updatePassword);
 router.post("/register", auth.register);
 // Verify the account
 router.post("/verify", auth.verify);
+router.post('/logout', auth.logout);
+
 
 // Get verified users
 router.get("/verify", async (req, res) => {

@@ -123,7 +123,7 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
   const handleEdit = async () => {
     try {
 
-      navigate(`/dashboard/editor/${newsletter._id}`, { state: { templateJson: newsletter.jsonContent } });
+      navigate(`/dashboard/editor/${newsletter._id}`, { state: { templateJson: newsletter.JSONcontent } });
     } catch (error) {
       console.error(`Error navigating to editor for newsletter with id ${newsletter._id}`, error);
     }

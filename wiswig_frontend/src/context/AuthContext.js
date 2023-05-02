@@ -35,20 +35,32 @@ export function AuthProvider({ children }) {
     return false;
   };
 
-  const logout = () => {
-    // Remove the JWT from the browser's cookie storage
+  const logout = async () => {
+    // Remove the user from the Redux store
+    dispatch({ type: 'LOGOUT' });
+
+    // Remove the JWT cookie from the server
+    try {
+      const response = await fetch('http://localhost:4000/auth/logout', {
+        method: 'DELETE',
+        credentials: 'include', 
+      });
+      if (response.ok) {
+        console.log('JWT cookie removed from the server');
+      } else {
+        console.error('Failed to remove JWT cookie from the server:', response.status);
+      }
+    } catch (error) {
+      console.error('Failed to remove JWT cookie from the server:', error);
+    }
+
     document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; secure; HttpOnly; SameSite=None';
+
     setUser(null);
   };
 
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return parts.pop().split(';').shift();
-    }
-    return null; // or return undefined, depending on your preference
-  };
+
+
 
   const value = {
     user,

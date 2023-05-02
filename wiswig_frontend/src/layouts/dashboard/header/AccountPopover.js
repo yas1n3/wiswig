@@ -1,13 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 import { useSelector } from 'react-redux';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
   const { user } = useSelector(state => state.user);
   const photoURL = `/assets/images/avatars/${user.avatar}.jpg`;
-
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -15,6 +19,18 @@ export default function AccountPopover() {
 
   const handleClose = () => {
     setOpen(null);
+  };
+
+
+  const handleLogout = async () => {
+    const success = await logout();
+    if (success) {
+      navigate('/');
+      window.reload();
+    }
+    else {
+      console.error('Failed');
+    }
   };
 
   return (
@@ -61,7 +77,8 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {`${user.user_First_Name} ${user.user_Last_Name}`}
+           {/*  {`${user.user_First_Name} ${user.user_Last_Name}`} */}
+            {user.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
             {user.user_Mail}
@@ -77,6 +94,11 @@ export default function AccountPopover() {
           <MenuItem key="profile" onClick={handleClose}>
             Profile
           </MenuItem>
+          {user.role === 'Admin' && (
+            <MenuItem key="users" onClick={handleClose}>
+              Manage users
+            </MenuItem>
+          )}
           <MenuItem key="settings" onClick={handleClose}>
             Settings
           </MenuItem>
@@ -84,7 +106,7 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuItem onClick={handleClose} sx={{ m: 1 }}>
+        <MenuItem onClick={handleLogout} sx={{ m: 1 }}>
           Logout
         </MenuItem>
       </Popover>
