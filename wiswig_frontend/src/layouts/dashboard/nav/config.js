@@ -17,11 +17,6 @@ const navConfig = [
     icon: icon('ic_user'),
   },
   {
-    title: 'add users',
-    path: '/dashboard/user/adduser',
-    icon: icon('ic_user'),
-  },
-  {
     title: 'newsletters',
     path: '/dashboard/newsletters',
     icon: icon('ic_blog'),

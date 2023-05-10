@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Grid, Button, Container, Stack, Typography, FormControl, InputLabel, Select, MenuItem   } from '@mui/material';
+import { Grid, Button, Container, Stack, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthContext } from '../context/AuthContext';
@@ -16,11 +16,15 @@ const SORT_OPTIONS = [
   { value: 'oldest', label: 'Oldest' },
 ];
 function UserFilterDropdown({ users, selectedUser, setSelectedUser }) {
-  console.log(users); // add this line
+
 
   const handleUserChange = (event) => {
     setSelectedUser(event.target.value);
+    console.log(event.target.value);
+
+    // console.log(selectedUser);
   };
+
 
   if (!users) {
     return null; // or some other fallback component
@@ -28,11 +32,10 @@ function UserFilterDropdown({ users, selectedUser, setSelectedUser }) {
 
   return (
     <FormControl>
-      <InputLabel>User</InputLabel>
       <Select value={selectedUser || ''} onChange={handleUserChange}>
         <MenuItem value="">All</MenuItem>
         {users.map((user) => (
-          <MenuItem key={user.id} value={user.id}>
+          <MenuItem key={user._id} value={user._id}>
             {user.name}
           </MenuItem>
         ))}
@@ -116,7 +119,8 @@ export default function NewsletterPage() {
     if (!selectedUser) {
       return true;
     }
-    return newsletter.creator === selectedUser;
+    console.log(selectedUser);
+    return newsletter.creator && newsletter.creator._id === selectedUser;
   });
   return (
     <>
@@ -136,27 +140,29 @@ export default function NewsletterPage() {
 
         <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
           <BlogPostsSearch posts={newsletters} setPosts={setNewsletters} />
-          <BlogPostsSort options={SORT_OPTIONS} />
-          <UserFilterDropdown
+          <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
+            <BlogPostsSort options={SORT_OPTIONS} height="14px" width="12px" />
+            <UserFilterDropdown height="14px" width="12px"
             users={users}
             selectedUser={selectedUser}
             setSelectedUser={setSelectedUser}
           />
         </Stack>
+      </Stack>
 
-        <Grid container spacing={3}>
-          {filteredNewsletters.map((newsletter) => (
-            <BlogPostCard
-              key={newsletter.id}
-              newsletter={newsletter}
-              onNewsletterDelete={(id) =>
-                setNewsletters(newsletters.filter((n) => n.id !== id))
-              }
-            />
-          ))}
-        </Grid>
+      <Grid container spacing={3}>
+        {filteredNewsletters.map((newsletter) => (
+          <BlogPostCard
+            key={newsletter.id}
+            newsletter={newsletter}
+            onNewsletterDelete={(id) =>
+              setNewsletters(newsletters.filter((n) => n.id !== id))
+            }
+          />
+        ))}
+      </Grid>
 
-        <NewsletterPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveNewsletter} />      </Container>
+      <NewsletterPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveNewsletter} />      </Container >
     </>
   );
 }

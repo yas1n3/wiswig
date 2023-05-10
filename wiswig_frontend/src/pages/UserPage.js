@@ -182,6 +182,10 @@ export default function UserPage() {
 
   const isNotFound = !filteredUsers.length && !!filterName;
   const navigate = useNavigate();
+  const handleButtonClick = () => {
+    navigate('/dashboard/user/adduser');
+  };
+
 
   return (
     <>
@@ -194,7 +198,7 @@ export default function UserPage() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleButtonClick}>
             New User
           </Button>
         </Stack>

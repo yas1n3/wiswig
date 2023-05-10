@@ -1,86 +1,110 @@
-import { useState, useEffect } from 'react';
-
-import useSWR from 'swr';
+import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField,
-    Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Checkbox,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import axios from 'axios';
 
-export default function SendToPopup({ setShowSendToPopup }) {
-    const [companies, setCompanies] = useState([]);
-    useEffect(() => {
-        const fetchCompanies = async () => {
-            try {
-                const response = await fetch('http://localhost:4000/company/companies');
-                const data = await response.json();
-                setCompanies(data);
-            } catch (error) {
-                console.log('Error fetching companies:', error);
-            }
-        };
-        fetchCompanies();
-    }, []);
-    
-    const [selectedRows, setSelectedRows] = useState([]);
+export default function SendToPopup({ onClose, newsletter }) {
+  const [companies, setCompanies] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
 
-
-
-    const handleRowSelection = (selection) => {
-        setSelectedRows(selection.selectionModel);
-        console.log(selectedRows);
-        console.log(selection)
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/company/companies');
+        const data = await response.json();
+        setCompanies(data);
+      } catch (error) {
+        console.log('Error fetching companies:', error);
+      }
     };
+    fetchCompanies();
+  }, []);
 
-    const handleSendTo = async () => {
-       // setShowSendToPopup(false);
-        console.log(selectedRows);
+  const handleRowSelection = (event, id) => {
+    const selectedIndex = selectedRows.indexOf(id);
+    let newSelected = [];
 
-        console.log('Sending newsletter to companies:', selectedRows);
-        // Api goes here
-    };
-    const getRowId = (row) => row._id;
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selectedRows, id);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selectedRows.slice(1));
+    } else if (selectedIndex === selectedRows.length - 1) {
+      newSelected = newSelected.concat(selectedRows.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(selectedRows.slice(0, selectedIndex), selectedRows.slice(selectedIndex + 1));
+    }
 
-    return (
-        <Dialog open onClose={() => setShowSendToPopup(false)}>
-            <DialogTitle>Send newsletter to companies</DialogTitle>
-            <DialogContent>
-                <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid
-                        rows={companies || []}
-                        columns={[
-                            
-                            { field: 'name', headerName: 'Name', width: '100%' },
-                        ]}
-                        checkboxSelection
-                        disableSelectionOnClick
-                        onSelectionModelChange={handleRowSelection}
-                        getRowId={getRowId}
+    setSelectedRows(newSelected);
+  };
 
-                    />
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleSendTo} disabled={selectedRows.length === 0}>Send</Button>
-                <Button onClick={() => setShowSendToPopup(false)}>Cancel</Button>
-            </DialogActions>
-        </Dialog>
-    );
+  const handleSendTo = async () => {
+    console.log('Sending newsletter to companies:', selectedRows);
+    // Api goes here
+  };
+
+  return (
+    <Dialog open >
+      <DialogTitle>Send newsletter</DialogTitle>
+      <DialogContent>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={selectedRows.length > 0 && selectedRows.length < companies.length}
+                    checked={selectedRows.length === companies.length}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        setSelectedRows(companies.map((company) => company._id));
+                      } else {
+                        setSelectedRows([]);
+                      }
+                    }}
+                  />
+                </TableCell>
+                <TableCell>Company</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {companies.map((company) => {
+                const isRowSelected = selectedRows.indexOf(company._id) !== -1;
+
+                return (
+                  <TableRow
+                    key={company._id}
+                    onClick={(event) => handleRowSelection(event, company._id)}
+                    selected={isRowSelected}
+                    hover
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={isRowSelected} />
+                    </TableCell>
+                    <TableCell>{company.name}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleSendTo} disabled={selectedRows.length === 0}>
+          Send
+        </Button>
+              <Button onClick={onClose}>Cancel</Button>
+      </DialogActions>
+    </Dialog>
+  );
 }

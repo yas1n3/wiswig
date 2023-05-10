@@ -155,8 +155,17 @@ module.exports = {
   },
 
   //DELETE
-  async deleteNewsletter(req, res) {
+  async deleteNewsletter2(req, res) {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "You must be logged in to create a newsletter" });
+    }
+
+   
+    
     try {
+      const decoded = jwt.verify(token, "Hakona_Matata");
+      const userId = decoded.data._id;
       await Newsletter.deleteMany({ _id: req.params.id }).exec();
       await User.updateMany(
         { _id: req.body.creator },
@@ -174,13 +183,21 @@ module.exports = {
     }
   },
 
-  async deleteNewsletter2(req, res) {
+  async deleteNewsletter(req, res) {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "You must be logged in to create a newsletter" });
+    }
+
+  
     try {
+      const decoded = jwt.verify(token, "Hakona_Matata");
+      const userId = decoded.data._id;
       const newsletter = await Newsletter.findById(req.params.id);
       if (!newsletter) {
         return res.status(404).json({ message: "Newsletter not found" });
       }
-      if (newsletter.creator.toString() !== req.user._id.toString()) {
+      if (newsletter.creator._id.toString() !== userId.toString()) {
         return res
           .status(401)
           .json({

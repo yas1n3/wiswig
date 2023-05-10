@@ -24,6 +24,8 @@ export default function DashboardAppPage() {
     }
   }, [location.state]);
 
+
+
   const save = () => {
     emailEditorRef.current?.saveDesign((design) => {
       emailEditorRef.current?.exportHtml((data) => {
@@ -33,10 +35,7 @@ export default function DashboardAppPage() {
           HTMLcontent: html,
           JSONcontent: JSON.stringify(design),
         };
-// add a verification if necessary
-/*         if (user) {
-          newsletter.creator = user._id;
-        } */
+
 
         axios
           .put(`http://localhost:4000/newsletter/editnewsletter/${id}`, newsletter)
@@ -57,6 +56,8 @@ export default function DashboardAppPage() {
       emailEditorRef.current?.loadDesign(templateJson);
     }
   };
+  console.log(newsletterTitle);
+  console.log(templateJson);
 
   return (
     <>
@@ -64,9 +65,13 @@ export default function DashboardAppPage() {
         <title>Newsletter builder | Wiswig</title>
       </Helmet>
       <Container>
+        <style>
+          {`.blockbuilder-branding, .brand { display: none !important; }`}
+        </style>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             Newsletter builder {newsletterTitle}
+            console.log(newsletterTitle);
           </Typography>
 
           <Button onClick={save} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
@@ -75,7 +80,9 @@ export default function DashboardAppPage() {
         </Stack>
         <Container style={{ transform: 'scale(0.925)', margin: '-5% 0 0 -10%' }}>
           <EmailEditor ref={emailEditorRef} onReady={onReady} />
+
         </Container>
+
       </Container>
     </>
   );

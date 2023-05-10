@@ -11,7 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { useSelector } from 'react-redux';
 
-import { NewslettersContext } from '../../../context/NewslettersContext';
+import { NewslettersContext } from '../../../components/popup/NewslettersContext';
+import SendToPopup from '../../../components/popup/SendToPopup';
 
 const StyledCardMedia = styled('div')({
   position: 'relative',
@@ -109,11 +110,14 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
     }
   };
 
+  const [showSendToPopup, setShowSendToPopup] = useState(false);
+
   const handleSendTo = () => {
-    console.log(`Sending newsletter with slug: ${slug} to...`);
+    setShowSendToPopup(true);
   };
 
   return (
+    <>
     <Grid item xs={12} sm={6} md={4}>
       <Card sx={{
         position: 'relative',
@@ -183,5 +187,15 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
         </CardContent>
       </Card>
     </Grid>
+      {showSendToPopup && (
+        <SendToPopup
+          handleSendTo={(selectedRows) => handleSendTo(selectedRows)}
+          onClose={() => {
+            setShowSendToPopup(false);
+          }}
+          newsletter={newsletter}
+        />
+      )}
+    </>
   );
 }
