@@ -12,19 +12,19 @@ export default function DashboardAppPage() {
 
   const { id } = useParams();
   const [templateJson, setTemplateJson] = useState(null);
-  const [newsletterTitle, setNewsletterTitle] = useState("");
+  const [newsletterTitle, setNewsletterTitle] = useState('');
   const location = useLocation();
 
-
-
   useEffect(() => {
-    if (location.state && location.state.newsletter) {
-      setTemplateJson(location.state.newsletter.JSONcontent);
-      setNewsletterTitle(location.state.newsletter.title);
-    }
-  }, [location.state]);
-
-
+    fetch(`http://localhost:4000/newsletter/newsletter/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setTemplateJson(data.newsletter.JSONcontent);
+        setNewsletterTitle(data.newsletter.title);
+      })
+      .catch((error) => console.error(error));
+  }, [id]);
 
   const save = () => {
     emailEditorRef.current?.saveDesign((design) => {
@@ -35,7 +35,6 @@ export default function DashboardAppPage() {
           HTMLcontent: html,
           JSONcontent: JSON.stringify(design),
         };
-
 
         axios
           .put(`http://localhost:4000/newsletter/editnewsletter/${id}`, newsletter)
@@ -51,13 +50,13 @@ export default function DashboardAppPage() {
     });
   };
 
-  const onReady = () => {
+  const onLoad = () => {
     if (templateJson) {
       emailEditorRef.current?.loadDesign(templateJson);
     }
   };
-  console.log(newsletterTitle);
-  console.log(templateJson);
+/*   const onReady = () => {}; */
+
 
   return (
     <>
@@ -65,24 +64,24 @@ export default function DashboardAppPage() {
         <title>Newsletter builder | Wiswig</title>
       </Helmet>
       <Container>
-        <style>
-          {`.blockbuilder-branding, .brand { display: none !important; }`}
-        </style>
+        <style>{`.blockbuilder-branding, .brand { display: none !important; }`}</style>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Newsletter builder {newsletterTitle}
-            console.log(newsletterTitle);
+            Newsletter builder
           </Typography>
-
           <Button onClick={save} variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
             Save Design
           </Button>
         </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+        <Typography variant="h6" gutterBottom>
+          {newsletterTitle}
+        </Typography>
+      </Stack>
+
         <Container style={{ transform: 'scale(0.925)', margin: '-5% 0 0 -10%' }}>
-          <EmailEditor ref={emailEditorRef} onReady={onReady} />
-
+          <EmailEditor ref={emailEditorRef} onReady={onLoad}  />
         </Container>
-
       </Container>
     </>
   );
