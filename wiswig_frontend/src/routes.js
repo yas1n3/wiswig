@@ -24,33 +24,21 @@ export default function Router() {
   const routes = useRoutes([
     {
       path: '/',
-      element: isLoggedIn ? (
-        <Navigate to="/dashboard/newsletters" />
-      ) : (
-        <LoginPage />
-      ),
+      element: isLoggedIn ? <Navigate to="/dashboard/newsletters" /> : <LoginPage />,
     },
     {
       path: '/dashboard',
-      element: isLoggedIn ? (
-        <DashboardLayout />
-      ) : (
-        <Navigate to="/" />
-      ),
+      element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/" />,
       children: [
         { element: <Navigate to="/dashboard/editor" />, index: true },
         {
           path: 'editor',
-          element: isLoggedIn ? (
-            <DashboardAppPage />
-          ) : (
-            <Navigate to="/" />
-          ),
+          element: isLoggedIn ? <DashboardAppPage /> : <Navigate to="/" />,
           children: [{ path: ':id', element: <DashboardAppPage /> }],
         },
         { path: 'user', element: isLoggedIn ? <UserPage /> : <Navigate to="/" /> },
         { path: 'products', element: isLoggedIn ? <ProductsPage /> : <Navigate to="/" /> },
-        { path: 'newsletters', element: isLoggedIn ? <NewsletterPage /> : <Navigate to="/" /> },
+        { path: 'newsletters', element: <NewsletterPage /> },
         { path: 'user/adduser', element: isLoggedIn ? <AddUserForm /> : <Navigate to="/" /> },
         { path: 'user/edit/:id', element: isLoggedIn ? <AddUserForm /> : <Navigate to="/" /> },
         { path: 'client', element: isLoggedIn ? <ClientPage /> : <Navigate to="/" /> },
