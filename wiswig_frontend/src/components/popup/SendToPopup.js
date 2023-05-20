@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Table,
   TableBody,
@@ -50,7 +51,19 @@ export default function SendToPopup({ onClose, newsletter }) {
 
   const handleSendTo = async () => {
     console.log('Sending newsletter to companies:', selectedRows);
-    // Api goes here
+    const companyIds = selectedRows;
+    const data = {
+      newsletterId: newsletter._id,
+      companyIds,
+    };
+    console.log(data);
+
+    try {
+      const response = await axios.post('http://localhost:4000/newsletter/send', data);
+      console.log('Newsletter sent successfully:', response.data);
+    } catch (error) {
+      console.error('Error sending newsletter:', error);
+    }
   };
 
   return (
@@ -100,10 +113,10 @@ export default function SendToPopup({ onClose, newsletter }) {
         </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleSendTo} disabled={selectedRows.length === 0}>
+        <Button onClick={() => { handleSendTo(); onClose(); }} disabled={selectedRows.length === 0}>
           Send
         </Button>
-              <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );

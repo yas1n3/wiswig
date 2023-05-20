@@ -1,18 +1,15 @@
 const Newsletter = require("../models/newsletter");
 const User = require("../models/user");
 const nodemailer = require("nodemailer");
-const jwt = require('jsonwebtoken');
-const verifyToken = require("../middleware/verifytoken");
-
-
+const jwt = require("jsonwebtoken");
 
 module.exports = {
-
-
   async createNewsletter(req, res) {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ message: "You must be logged in to create a newsletter" });
+      return res
+        .status(401)
+        .json({ message: "You must be logged in to create a newsletter" });
     }
 
     try {
@@ -33,8 +30,6 @@ module.exports = {
 
       const newsletter = await Newsletter.create(body);
       console.log(newsletter);
-
-
 
       await User.updateOne(
         {
@@ -57,19 +52,36 @@ module.exports = {
     }
   },
 
-
-
   async editNewsletter(req, res) {
-    const body = {
-      //creator: req.user._id,
-      title: req.body.title,
-      description: req.body.description,
-      HTMLcontent: req.body.HTMLcontent,
-      JSONcontent: req.body.JSONcontent,
-      status: req.body.status,
-    };
+    const token = req.cookies.token;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "You must be logged in to edit a newsletter" });
+    }
     try {
-      const newsletter = await Newsletter.findByIdAndUpdate(req.params.id, body);
+      const decoded = jwt.verify(token, "Hakona_Matata");
+      const userId = decoded.data._id;
+      const newsletter = await Newsletter.findById(req.params.id);
+      if (!newsletter) {
+        return res.status(404).json({ message: "Newsletter not found" });
+      }
+      if (newsletter.creator._id.toString() !== userId.toString()) {
+        return res.status(401).json({
+          message: "You are not authorized to edit this newsletter",
+        });
+      }
+      const body = {
+        title: req.body.title,
+        description: req.body.description,
+        HTMLcontent: req.body.HTMLcontent,
+        JSONcontent: req.body.JSONcontent,
+        status: req.body.status,
+      };
+      const updatedNewsletter = await Newsletter.findByIdAndUpdate(
+        req.params.id,
+        body
+      );
       if (req.user) {
         const user = await User.findById(req.user._id);
         await User.updateOne(
@@ -79,7 +91,7 @@ module.exports = {
           {
             $push: {
               newsletters: {
-                nsId: newsletter._id,
+                nsId: updatedNewsletter._id,
                 ns: req.body.title,
               },
             },
@@ -95,13 +107,14 @@ module.exports = {
   //get all newsletters
   async getAllNewsletters(req, res) {
     try {
-      const newsletters = await Newsletter.find({})
-        .populate("creator")
+      const newsletters = await Newsletter.find({}).populate("creator");
       return res
         .status(200)
         .json({ message: "Newsletters are here", newsletters });
     } catch (err) {
-      return res.status(400).json({ message: "Error occurred", error: err.message });
+      return res
+        .status(400)
+        .json({ message: "Error occurred", error: err.message });
     }
   },
 
@@ -115,12 +128,13 @@ module.exports = {
         return res.status(404).json({ message: "Newsletter not found" });
       }
 
-      return res.status(200).json({ message: "Newsletter is here", newsletter });
+      return res
+        .status(200)
+        .json({ message: "Newsletter is here", newsletter });
     } catch (err) {
       return res.status(400).json({ message: "Error occurred" });
     }
   },
-
 
   //get newsletters by creator
   async getNewslettersByUser(req, res) {
@@ -154,42 +168,13 @@ module.exports = {
     }
   },
 
-  //DELETE
-  async deleteNewsletter2(req, res) {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: "You must be logged in to create a newsletter" });
-    }
-
-   
-    
-    try {
-      const decoded = jwt.verify(token, "Hakona_Matata");
-      const userId = decoded.data._id;
-      await Newsletter.deleteMany({ _id: req.params.id }).exec();
-      await User.updateMany(
-        { _id: req.body.creator },
-        {
-          $pull: {
-            newsletters: {
-              nsId: req.params.id,
-            },
-          },
-        }
-      ).exec();
-      res.status(200).json({ message: "Newsletter deleted successfully" });
-    } catch (err) {
-      res.status(200).json({ message: "Failed to delete the newsletter" });
-    }
-  },
-
   async deleteNewsletter(req, res) {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ message: "You must be logged in to create a newsletter" });
+      return res
+        .status(401)
+        .json({ message: "You must be logged in to create a newsletter" });
     }
-
-  
     try {
       const decoded = jwt.verify(token, "Hakona_Matata");
       const userId = decoded.data._id;
@@ -198,11 +183,9 @@ module.exports = {
         return res.status(404).json({ message: "Newsletter not found" });
       }
       if (newsletter.creator._id.toString() !== userId.toString()) {
-        return res
-          .status(401)
-          .json({
-            message: "You are not authorized to delete this newsletter",
-          });
+        return res.status(401).json({
+          message: "You are not authorized to delete this newsletter",
+        });
       }
       await Newsletter.deleteMany({ _id: req.params.id }).exec();
       await User.updateMany(
@@ -222,23 +205,29 @@ module.exports = {
   },
 
   async duplicateNewsletter(req, res) {
-    const { newsletterId, newCreatorId } = req.body;
-
+    const token = req.cookies.token;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "You must be logged in to duplicate a newsletter" });
+    }
     try {
-      // Get the newsletter to duplicate
-      const newsletterToDuplicate = await Newsletter.findById(newsletterId);
+      const decoded = jwt.verify(token, "Hakona_Matata");
+      const newCreatorId = decoded.data._id;
+      const newsletterToDuplicate = await Newsletter.findById(req.params.id);
       if (!newsletterToDuplicate) {
         return res.status(404).json({ message: "Newsletter not found" });
       }
 
-      // Create a new newsletter object with the same properties as the original newsletter
+      const cov = Math.floor(Math.random() * 24) + 1;
       const duplicatedNewsletter = new Newsletter({
-        title: req.body.title,
+        title: newsletterToDuplicate.title,
         description: req.body.description,
         HTMLcontent: newsletterToDuplicate.HTMLcontent,
         JSONcontent: newsletterToDuplicate.JSONcontent,
         status: newsletterToDuplicate.status,
         creator: newCreatorId,
+        cover: `cover_${cov}`,
       });
 
       // Save the duplicated newsletter to the database
@@ -263,8 +252,51 @@ module.exports = {
     }
   },
 
+  async sendNewsletter(req, res) {
+    const { newsletterId, companyIds } = req.body;
+
+    try {
+      // Get the newsletter by ID
+      const newsletter = await Newsletter.findById(newsletterId);
+
+      // Get the companies by IDs
+      const companies = await Company.find({ _id: { $in: companyIds } });
+
+      // Create the email transporter
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      // Send the newsletter to the clients of each company
+      for (const company of companies) {
+        const clients = company.clients;
+        for (const client of clients) {
+          // Create the email message
+          const mailOptions = {
+            from: "your-email@gmail.com", // Replace with your own email
+            to: client.client_Mail,
+            subject: newsletter.title,
+            html: newsletter.HTMLcontent,
+          };
+
+          // Send the email
+          await transporter.sendMail(mailOptions);
+        }
+      }
+
+      res.status(200).json({ message: "Newsletter sent successfully" });
+    } catch (error) {
+      console.error("Error sending newsletter:", error);
+      res.status(500).json({ error: "Error sending newsletter" });
+    }
+  },
+
   //send newsletter
-  /* async function sendNewsletterToClient(req, res) {
+  /* async  sendNewsletterToClient(req, res) {
   const { newsletterId, clientId } = req.params;
 
   try {
@@ -306,5 +338,4 @@ module.exports = {
     res.status(500).json({ message: "Failed to send newsletter" });
   }
 } */
-
 };

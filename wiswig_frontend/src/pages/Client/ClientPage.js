@@ -1,6 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { filter } from 'lodash';
+import { filter, isNull } from 'lodash';
+import { useSnackbar } from 'notistack';
+
 import { sentenceCase } from 'change-case';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -88,6 +90,10 @@ export default function ClientPage() {
 
   const [CLIENTLIST, setCLIENTLIST] = useState([]);
 
+  const [currentClient, setCurrentClient] = useState(null);
+
+  const { enqueueSnackbar } = useSnackbar();
+
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -100,12 +106,18 @@ export default function ClientPage() {
     fetchClients();
   }, []);
 
-  const handleOpenMenu = (event) => {
+  const handleClickMenuItem = (event, clientId) => {
     setOpen(event.currentTarget);
+    const clientIndex = filteredClients.findIndex((client) => client._id === clientId);
+    const client = filteredClients[clientIndex];
+    setCurrentClient(client);
+    console.log(client);
   };
 
   const handleCloseMenu = () => {
     setOpen(null);
+    setCurrentClient(isNull);
+
   };
 
   const handleRequestSort = (event, property) => {
@@ -152,11 +164,36 @@ export default function ClientPage() {
     setFilterName(event.target.value);
   };
 
+  const handleEdit = () => {
+    if (currentClient) {
+      navigate(`/dashboard/client/edit/${currentClient._id}`, {
+        state: {
+          isEdit: true,
+          currentClient,
+        },
+      });
+      handleCloseMenu();
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:4000/client/delete/${currentClient._id}`);
+      const updatedList = CLIENTLIST.filter((client) => client._id !== currentClient._id);
+      setCLIENTLIST(updatedList);
+    } catch (error) {
+      enqueueSnackbar('Client not deleted!');
+      console.error(error);
+    }
+  };
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CLIENTLIST.length) : 0;
 
   const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
   const isNotFound = !filteredClients.length && !!filterName;
   const navigate = useNavigate();
+  const handleButtonClick = () => {
+    navigate('/dashboard/client/add');
+  };
   return (
     <>
       <Helmet>
@@ -168,9 +205,16 @@ export default function ClientPage() {
           <Typography variant="h4" gutterBottom>
             Client
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New Client
-          </Button>
+          <Stack  alignItems="center" justifyContent="space-between" mb={5} spacing={2}>
+            <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={null} style={{ width: '160px' }}>
+              New Company
+            </Button>
+
+            <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleButtonClick} style={{ width: '160px' }}>
+              New Client
+            </Button>
+
+          </Stack>
         </Stack>
 
         <Card>
@@ -210,10 +254,10 @@ export default function ClientPage() {
 
                         <TableCell align="left">{client_Mail}</TableCell>
 
-                        <TableCell align="left">{clientGroup}</TableCell>
+                        <TableCell align="left">{clientGroup.name}</TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={(e) => handleClickMenuItem(e, _id)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -284,12 +328,21 @@ export default function ClientPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleEdit();
+          }}
+        >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem sx={{ color: 'error.main' }}
+          onClick={() => {
+            handleDelete();
+            handleCloseMenu();
+          }}
+        >
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

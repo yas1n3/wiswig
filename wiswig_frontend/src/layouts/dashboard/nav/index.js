@@ -6,8 +6,6 @@ import { useSelector } from 'react-redux';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
-// mock
-import account from '../../../_mock/account';
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
 // components

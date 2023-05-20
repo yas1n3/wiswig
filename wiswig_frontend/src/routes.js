@@ -16,6 +16,7 @@ import AddClientForm from './pages/Client/AddClientForm';
 export default function Router() {
   const user = useSelector((state) => state.user);
   const [isLoggedIn, setIsLoggedIn] = useState(user.isLoggedIn);
+  const isAdmin = user?.user?.role === 'Admin';
 
   useEffect(() => {
     setIsLoggedIn(user.isLoggedIn);
@@ -24,45 +25,33 @@ export default function Router() {
   const routes = useRoutes([
     {
       path: '/',
-      element: isLoggedIn ? (
-        <Navigate to="/dashboard/newsletters" />
-      ) : (
-        <LoginPage />
-      ),
+      element: isLoggedIn ? <Navigate to="/dashboard/newsletters" /> : <LoginPage />,
     },
     {
       path: '/dashboard',
-      element: isLoggedIn ? (
-        <DashboardLayout />
-      ) : (
-        <Navigate to="/" />
-      ),
+      element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/" />,
       children: [
         { element: <Navigate to="/dashboard/editor" />, index: true },
         {
           path: 'editor',
-          element: isLoggedIn ? (
-            <DashboardAppPage />
-          ) : (
-            <Navigate to="/" />
-          ),
+          element: isLoggedIn ? <DashboardAppPage /> : <Navigate to="/" />,
           children: [{ path: ':id', element: <DashboardAppPage /> }],
         },
-        { path: 'user', element: isLoggedIn ? <UserPage /> : <Navigate to="/" /> },
-        { path: 'products', element: isLoggedIn ? <ProductsPage /> : <Navigate to="/" /> },
         { path: 'newsletters', element: isLoggedIn ? <NewsletterPage /> : <Navigate to="/" /> },
-        { path: 'user/adduser', element: isLoggedIn ? <AddUserForm /> : <Navigate to="/" /> },
-        { path: 'user/edit/:id', element: isLoggedIn ? <AddUserForm /> : <Navigate to="/" /> },
+        { path: 'user', element: isAdmin ? <UserPage /> : <Navigate to="/" /> },
+        { path: 'user/add', element: isAdmin ? <AddUserForm /> : <Navigate to="/" /> },
+        { path: 'user/edit/:id', element: isAdmin ? <AddUserForm /> : <Navigate to="/" /> },
+        { path: 'settings', element: isLoggedIn ? <AddUserForm /> : <Navigate to="/" /> },
+
         { path: 'client', element: isLoggedIn ? <ClientPage /> : <Navigate to="/" /> },
         { path: 'client/add', element: isLoggedIn ? <AddClientForm /> : <Navigate to="/" /> },
+        { path: 'client/edit/:id', element: isLoggedIn ? <AddClientForm /> : <Navigate to="/" /> },
       ],
     },
     {
       path: '*',
       element: (
-        <SimpleLayout>
           <Page404 />
-        </SimpleLayout>
       ),
     },
   ]);

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
@@ -17,65 +18,48 @@ const u_options = [
   { value: 'User', label: 'User' },
 ];
 const g_options = [
-  { value: 'Male', label: 'male' },
-  { value: 'Female', label: 'female' },
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
 ];
+
 
 AddUserForm.propTypes = {
   isEdit: PropTypes.bool,
   currentUser: PropTypes.object,
 };
 
-export default function AddUserForm({ isEdit, currentUser } ) {
-  // const location = useLocation();
-  // const { isEdit } = location.state || {};
-// const { state } = useLocation();
-/*    const { isEdit: stateIsEdit, currentUser: stateCurrentUser } = state;
-  isEdit = isEdit !== undefined ? isEdit : stateIsEdit;
-  currentUser = currentUser !== undefined ? currentUser : stateCurrentUser; */
-// console.log(state);
-
-  const [editMode, setEditMode] = useState(isEdit);
-  const [user, setUser] = useState(currentUser);
+export default function AddUserForm() {
+  const LoggedUser = useSelector((state) => state.user);
   const { state } = useLocation();
-  useEffect(() => {
-    if (state) {
-      const { isEdit: editValue, currentUser: userValue } = state;
-      if (editValue !== editMode || userValue !== user) {
-        // Update the state only if they've changed
-        setEditMode(editValue);
-        setUser(userValue);
-      }
-    }
-  }, [state, editMode, user]);
-  console.log(isEdit, currentUser );
+  console.log(state);
+  const { isEdit = false, currentUser = null } = state || {};
+  console.log(isEdit, currentUser);
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const NewUserSchema = Yup.object().shape({
-    user_First_Name: Yup.string().required('First Name is required'),
-    user_Last_Name: Yup.string().required('Last Name is required'),
-    user_Mail: Yup.string().required('Email is required').email(),
-    user_Password: Yup.string().required('Password is required').min(4, 'Password must be at least 4 characters'),
+    firstName: Yup.string().required('First Name is required'),
+    lastName: Yup.string().required('Last Name is required'),
+    mail: Yup.string().required('Email is required').email(),
+    password: Yup.string().required('Password is required').min(4, 'Password must be at least 4 characters'),
     role: Yup.string().required('Role is required'),
     gender: Yup.string().required('Gender is required'),
   });
 
   const defaultValues = useMemo(() => {
     const defaultUser = {
-      user_First_Name: '',
-      user_Last_Name: '',
-      user_Mail: '',
-      user_Password: '',
+      firstName: '',
+      lastName: '',
+      mail: '',
+      password: '',
       role: '',
       gender: '',
     };
     if (isEdit && currentUser) {
       return {
         ...defaultUser,
-        user_First_Name: currentUser.user_First_Name,
-        user_Last_Name: currentUser.user_Last_Name,
-        user_Mail: currentUser.user_Mail,
-        user_Password: currentUser.user_Password,
+        firstName: currentUser.user_First_Name,
+        lastName: currentUser.user_Last_Name,
+        mail: currentUser.user_Mail,
         role: currentUser.role,
         gender: currentUser.gender,
       };
@@ -94,20 +78,33 @@ export default function AddUserForm({ isEdit, currentUser } ) {
     formState: { isSubmitting },
     control,
   } = methods;
+  const handleCancel = () => {
+    navigate('/dashboard/user');
+  };
+
+
 
   const onSubmit = useCallback(
     async (data) => {
       try {
         console.log('Submitting data:', data);
-        await axios.post('http://localhost:4000/auth/register', data);
+
+        if (isEdit && currentUser) {
+          await axios.put(`http://localhost:4000/auth/edit/${currentUser._id}`, data);
+          enqueueSnackbar('Update success!', { variant: 'success', autoHideDuration: 3000 });
+        } else {
+          await axios.post('http://localhost:4000/auth/register', data);
+          enqueueSnackbar('Create success!', { variant: 'success', autoHideDuration: 3000 });
+        }
+
         reset();
-        enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
         navigate('/dashboard/user');
       } catch (error) {
+        enqueueSnackbar('An error occurred.', { variant: 'error', autoHideDuration: 3000 });
         console.error(error);
       }
     },
-    [reset, enqueueSnackbar, navigate, isEdit]
+    [reset, enqueueSnackbar, navigate, isEdit, currentUser]
   );
 
   return (
@@ -116,7 +113,7 @@ export default function AddUserForm({ isEdit, currentUser } ) {
         <Grid container spacing={3} sx={{ width: '100%', mx: 'auto', paddingLeft: '5%' }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ py: 10, px: 3, width: 800, mx: 'auto' }}>
-              {isEdit && (
+              {isEdit && control.formState && (
                 <Label
                   color={control.formState.isDirty ? 'error' : 'success'}
                   sx={{ textTransform: 'uppercase', position: 'absolute', top: 24, right: 24 }}
@@ -132,7 +129,7 @@ export default function AddUserForm({ isEdit, currentUser } ) {
                       First Name
                     </Typography>
                     <Controller
-                      name="user_First_Name"
+                      name="firstName"
                       control={control}
                       render={({ field }) => <RHFTextField {...field} required fullWidth label="First Name" />}
                     />
@@ -144,7 +141,7 @@ export default function AddUserForm({ isEdit, currentUser } ) {
                       Last Name
                     </Typography>
                     <Controller
-                      name="user_Last_Name"
+                      name="lastName"
                       control={control}
                       render={({ field }) => <RHFTextField {...field} required fullWidth label="Last Name" />}
                     />
@@ -158,7 +155,7 @@ export default function AddUserForm({ isEdit, currentUser } ) {
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
                       Email
                     </Typography>
-                    <RHFTextField name="user_Mail" required fullWidth control={control} />
+                    <RHFTextField name="mail" required fullWidth control={control} />
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -166,36 +163,39 @@ export default function AddUserForm({ isEdit, currentUser } ) {
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
                       Password
                     </Typography>
-                    <RHFTextField name="user_Password" required fullWidth control={control} type="password" />
+                    <RHFTextField name="password" required fullWidth control={control} type="password" />
                   </Box>
                 </Grid>
               </Grid>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ mb: 5 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                      Role
-                    </Typography>
-                    <Controller
-                      name="role"
-                      control={control}
-                      render={({ field }) => (
-                        <RHFSelect {...field} label="Role" required variant="outlined" fullWidth>
-                          <option value="" />
-                          {u_options.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </RHFSelect>
-                      )}
-                    />
-                    <Typography variant="caption" sx={{ mt: 1 }}>
-                      Please select a role from the options above.
-                    </Typography>
-                  </Box>
-                </Grid>
+                {LoggedUser.user.role === 'Admin' && (
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ mb: 5 }}>
+                      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                        Role
+                      </Typography>
+                      <Controller
+                        name="role"
+                        control={control}
+                        render={({ field }) => (
+                          <RHFSelect {...field} label="Role" required variant="outlined" fullWidth>
+                            <option value="" />
+                            {u_options.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </RHFSelect>
+                        )}
+                      />
+                      <Typography variant="caption" sx={{ mt: 1 }}>
+                        Please select a role from the options above.
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ mb: 5 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -221,17 +221,16 @@ export default function AddUserForm({ isEdit, currentUser } ) {
                   </Box>
                 </Grid>
               </Grid>
-              <Button variant="contained" color="primary" type="submit" form="add-user-form">
-                {isSubmitting ? <LoadingButton loading /> : 'Submit'}
-              </Button>
-
-              {/*       <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleSubmit}>
-                Save
-              </Button> */}
-
-              {/*      <LoadingButton type="submit" variant="contained" loading={isSubmitting} onClick={handleSubmit}>
-                Save
-              </LoadingButton> */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Stack direction="row" spacing={2}>
+                  <Button variant="contained" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button variant="contained" color="primary" type="submit" form="add-user-form">
+                    {isSubmitting ? <LoadingButton loading /> : 'Submit'}
+                  </Button>
+                </Stack>
+              </Box>
             </Card>
           </Grid>
         </Grid>

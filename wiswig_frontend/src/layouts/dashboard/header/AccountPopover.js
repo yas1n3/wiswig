@@ -32,6 +32,18 @@ export default function AccountPopover() {
       console.error('Failed');
     }
   };
+  const handleSettings = () => {
+    if (user) {
+      const currentUser = user;
+      navigate(`/dashboard/settings`, {
+        state: {
+          isEdit: true,
+          currentUser,
+        },
+      });
+      handleClose();
+    }
+  };
 
   return (
     <>
@@ -77,7 +89,6 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-           {/*  {`${user.user_First_Name} ${user.user_Last_Name}`} */}
             {user.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
@@ -99,7 +110,7 @@ export default function AccountPopover() {
               Manage users
             </MenuItem>
           )}
-          <MenuItem key="settings" onClick={handleClose}>
+          <MenuItem key="settings" onClick={handleSettings}>
             Settings
           </MenuItem>
         </Stack>

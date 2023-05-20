@@ -2,7 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-
+import { SnackbarProvider } from 'notistack';
 import { store, persistor } from './store/store';
 import { AuthProvider } from './context/AuthContext';
 
@@ -24,9 +24,11 @@ export default function App() {
           <HelmetProvider>
             <BrowserRouter>
               <ThemeProvider>
-                <ScrollToTop />
-                <StyledChart />
-                <Router />
+                <SnackbarProvider>
+                  <ScrollToTop />
+                  <StyledChart />
+                  <Router />
+                </SnackbarProvider>
               </ThemeProvider>
             </BrowserRouter>
           </HelmetProvider>

@@ -4,11 +4,10 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const randomstring = require("randomstring");
-const mailer = require("../middleware/mailer");
 const auth = require("../controllers/auth");
 const admin = require("../controllers/admin");
 
-router.get('/initialize', auth.initialize);
+
 
 router.post("/login", auth.loginUser);
 router.post("/newPassowrd", auth.newPasword);

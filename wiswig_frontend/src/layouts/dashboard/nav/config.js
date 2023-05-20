@@ -21,6 +21,11 @@ const navConfig = [
     path: '/dashboard/newsletters',
     icon: icon('ic_blog'),
   },
+  {
+    title: 'clients',
+    path: '/dashboard/client',
+    icon: icon('ic_user'),
+  },
 /*   {
     title: 'product',
     path: '/dashboard/products',

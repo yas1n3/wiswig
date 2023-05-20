@@ -2,10 +2,10 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { filter } from 'lodash';
+import { useSnackbar } from 'notistack';
+
 import { sentenceCase } from 'change-case';
-
 import { useEffect, useState } from 'react';
-
 import {
   Card,
   Table,
@@ -25,7 +25,6 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import AddUserForm from './User/AddUserForm';
 // components
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -92,7 +91,7 @@ export default function UserPage() {
   const [USERLIST, setUSERLIST] = useState([]);
 
   const [currentUser, setCurrentUser] = useState(null);
-
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -105,6 +104,7 @@ export default function UserPage() {
     };
     fetchUsers();
   }, []);
+
   const handleClickMenuItem = (event, userId) => {
     setOpen(event.currentTarget);
     const userIndex = filteredUsers.findIndex((user) => user._id === userId);
@@ -174,7 +174,18 @@ export default function UserPage() {
     }
   };
 
-  const handleDelete = () => {};
+
+  const handleDelete = async () => {
+
+    try {
+      await axios.delete(`http://localhost:4000/admin/delete/${currentUser._id}`);
+      const updatedUserList = USERLIST.filter((user) => user._id !== currentUser._id);
+      setUSERLIST(updatedUserList);
+    } catch (error) {
+      enqueueSnackbar('User not deleted!');
+      console.error(error);
+    }
+  };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
@@ -183,9 +194,8 @@ export default function UserPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
   const navigate = useNavigate();
   const handleButtonClick = () => {
-    navigate('/dashboard/user/adduser');
+    navigate('/dashboard/user/add');
   };
-
 
   return (
     <>

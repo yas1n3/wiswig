@@ -1,7 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const mailer = require("../middleware/mailer");
 const randomstring = require("randomstring");
 const session = require("express-session");
 
@@ -50,9 +49,7 @@ module.exports = {
       res.status(400).send("Server Error: " + err);
     }
   },
-  async initialize(req, res) {
-    res.status(200).send("Initiatiaized!");
-  },
+
 
   async loginUser(req, res) {
     try {

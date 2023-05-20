@@ -3,12 +3,22 @@ const User = require("../models/user");
 module.exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
-    res.status(200).json(users);
+
+    // Map over the users array and add the virtual 'name' property
+    const usersWithNames = users.map((user) => {
+      return {
+        ...user._doc,
+        name: user.name,
+      };
+    });
+
+    res.status(200).json(usersWithNames);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 module.exports.deleteUser = async (req, res) => {
   try {

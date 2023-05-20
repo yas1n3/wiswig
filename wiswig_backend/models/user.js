@@ -19,22 +19,25 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['male', 'female', 'Other'],
+      enum: ["male", "female", "other"],
     },
     avatar: String,
-    name: {
-      type: String, default: function () {
-        return `${this.user_First_Name} ${this.user_Last_Name}`;
-      }
-    },
     newsletters: [
       {
-        newsletterId: { type: mongoose.Schema.Types.ObjectId, ref: "Newsletter" },
+        newsletterId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Newsletter",
+        },
         newsletter: { type: String },
       },
     ],
   },
   { timestamps: true }
 );
+
+// Define a virtual field 'name' using a getter function
+userSchema.virtual('name').get(function () {
+  return `${this.user_First_Name} ${this.user_Last_Name}`;
+});
 
 module.exports = mongoose.model("User", userSchema);

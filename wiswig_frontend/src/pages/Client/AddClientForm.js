@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+
 import { useSnackbar } from 'notistack';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { LoadingButton } from '@mui/lab';
@@ -17,7 +19,11 @@ AddClientForm.propTypes = {
   currentClient: PropTypes.object,
 };
 
-export default function AddClientForm({ isEdit, currentClient }) {
+export default function AddClientForm() {
+  const { state } = useLocation();
+  const { isEdit = false, currentClient = null } = state || {};
+
+
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const NewClientSchema = Yup.object().shape({
@@ -37,10 +43,10 @@ export default function AddClientForm({ isEdit, currentClient }) {
     if (isEdit && currentClient) {
       return {
         ...defaultClient,
-        client_First_Name: currentClient.firstName,
-        client_Last_Name: currentClient.lastName,
-        client_Mail: currentClient.email,
-        clientGroupId: currentClient.clientGroupId,
+        client_First_Name: currentClient.client_First_Name,
+        client_Last_Name: currentClient.client_Last_Name,
+        client_Mail: currentClient.client_Mail,
+        clientGroupId: currentClient.clientGroup._id,
       };
     }
     return defaultClient;
@@ -57,20 +63,32 @@ export default function AddClientForm({ isEdit, currentClient }) {
     formState: { isSubmitting },
     control,
   } = methods;
+  const handleCancel = () => {
+    navigate('/dashboard/client');
+  };
+
 
   const onSubmit = useCallback(
     async (data) => {
       try {
         console.log('Submitting data:', data);
-        await axios.post('http://localhost:4000/client/add', data);
+
+        if (isEdit && currentClient) {
+          await axios.put(`http://localhost:4000/client/edit/${currentClient._id}`, data);
+          enqueueSnackbar('Update success!', { variant: 'success', autoHideDuration: 3000 });
+        } else {
+          await axios.post('http://localhost:4000/client/add', data);
+          enqueueSnackbar('Create success!', { variant: 'success', autoHideDuration: 3000 });
+        }
+
         reset();
-        enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
-        // navigate('/dashboard/user');
+        navigate('/dashboard/client');
       } catch (error) {
+        enqueueSnackbar('An error occurred.', { variant: 'error', autoHideDuration: 3000 });
         console.error(error);
       }
     },
-    [reset, enqueueSnackbar, navigate, isEdit]
+    [reset, enqueueSnackbar, navigate, isEdit, currentClient]
   );
 
   const [clientGroupOptions, setClientGroupOptions] = useState([]);
@@ -98,7 +116,7 @@ export default function AddClientForm({ isEdit, currentClient }) {
         <Grid container spacing={3} sx={{ width: '100%', mx: 'auto', paddingLeft: '5%' }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ py: 10, px: 3, width: 800, mx: 'auto' }}>
-              {isEdit && (
+              {isEdit && control.formState && (
                 <Label
                   color={control.formState.isDirty ? 'error' : 'success'}
                   sx={{ textTransform: 'uppercase', position: 'absolute', top: 24, right: 24 }}
@@ -134,6 +152,7 @@ export default function AddClientForm({ isEdit, currentClient }) {
                 </Grid>
               </Grid>
 
+
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ mb: 5 }}>
@@ -143,9 +162,6 @@ export default function AddClientForm({ isEdit, currentClient }) {
                     <RHFTextField name="client_Mail" required fullWidth control={control} />
                   </Box>
                 </Grid>
-              </Grid>
-
-              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ mb: 5 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -155,7 +171,7 @@ export default function AddClientForm({ isEdit, currentClient }) {
                       name="clientGroupId"
                       control={control}
                       render={({ field }) => (
-                        <RHFSelect {...field} label="Client Group" required variant="outlined" fullWidth>
+                        <RHFSelect {...field} label="Company" required variant="outlined" fullWidth>
                           <option value="" />
                           {clientGroupOptions.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -171,17 +187,16 @@ export default function AddClientForm({ isEdit, currentClient }) {
                   </Box>
                 </Grid>
               </Grid>
-              <Button variant="contained" color="primary" type="submit" form="add-client-form">
-                {isSubmitting ? <LoadingButton loading /> : 'Submit'}
-              </Button>
-
-              {/*       <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleSubmit}>
-                Save
-              </Button> */}
-
-              {/*      <LoadingButton type="submit" variant="contained" loading={isSubmitting} onClick={handleSubmit}>
-                Save
-              </LoadingButton> */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Stack direction="row" spacing={2}>
+                  <Button variant="contained" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button variant="contained" color="primary" type="submit" form="add-client-form">
+                    {isSubmitting ? <LoadingButton loading /> : 'Submit'}
+                  </Button>
+                </Stack>
+              </Box>
             </Card>
           </Grid>
         </Grid>

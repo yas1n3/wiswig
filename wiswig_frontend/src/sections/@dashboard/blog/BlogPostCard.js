@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 import { alpha, styled } from '@mui/material/styles';
 import { Box, Button, Card, CardContent, Grid, IconButton, Link, Menu, MenuItem, Typography } from '@mui/material';
-import * as htmlToImage from 'html-to-image';
-import { toPng } from 'html-to-image';
 import React, { useContext, useEffect, useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -81,20 +79,22 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
   const handleDelete = async () => {
 
     try {
-      await axios.post(`http://localhost:4000/newsletter/delete/${newsletter._id}`);
+      await axios.delete(`http://localhost:4000/newsletter/delete/${newsletter._id}`, {
+        withCredentials: true
+      });
       console.log(`Newsletter with id ${newsletter._id} has been deleted`);
       window.location.reload();
     } catch (error) {
       enqueueSnackbar('You are not authorized to delete this newsletter', { variant: 'error' });
       console.error(`Error deleting newsletter with id ${newsletter._id}`, error);
-
-
     }
   };
 
   const handleDuplicate = async () => {
     try {
-      await axios.post(`http://localhost:4000/newsletter/duplicate/${newsletter._id}`);
+      await axios.post(`http://localhost:4000/newsletter/duplicate/${newsletter._id}`, null, {
+        withCredentials: true
+      });
       console.log(`Newsletter with id ${newsletter._id} has been duplicated`);
       newslettersContext.addNewsletter(newsletter);
     } catch (error) {
@@ -118,75 +118,75 @@ export default function BlogPostCard({ newsletter, onNewsletterDelete, index, sl
 
   return (
     <>
-    <Grid item xs={12} sm={6} md={4}>
-      <Card sx={{
-        position: 'relative',
-        backgroundColor: newsletter.JSONcontent ? 'inherit' : 'yellow',
-      }}>
-        <CardContent>
-          <StyledCardMedia>
-            <StyledCover src={coverUrl} alt={newsletter.title} />
-          </StyledCardMedia>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <StyledTitle variant="h6" component="h3">
-              {newsletter.title}
-            </StyledTitle>
-            <IconButton onClick={handleClick}>
-              <MoreVertIcon />
-            </IconButton>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-              {newsletter.creator && user && newsletter.creator._id === user._id ? (
+      <Grid item xs={12} sm={6} md={4}>
+        <Card sx={{
+          position: 'relative',
+          backgroundColor: newsletter.JSONcontent ? 'inherit' : 'yellow',
+        }}>
+          <CardContent>
+            <StyledCardMedia>
+              <StyledCover src={coverUrl} alt={newsletter.title} />
+            </StyledCardMedia>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <StyledTitle variant="h6" component="h3">
+                {newsletter.title}
+              </StyledTitle>
+              <IconButton onClick={handleClick}>
+                <MoreVertIcon />
+              </IconButton>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                {newsletter.creator && user && newsletter.creator._id === user._id ? (
+                  <MenuItem
+                    onClick={() => {
+                      handleClose();
+                      handleEdit();
+                    }}
+                  >
+                    Edit
+                  </MenuItem>
+                ) : (
+                  <MenuItem disabled>Cannot Edit</MenuItem>
+                )}
                 <MenuItem
                   onClick={() => {
                     handleClose();
-                    handleEdit();
+                    handleSendTo();
                   }}
                 >
-                  Edit
+                  Send to...
                 </MenuItem>
-              ) : (
-                <MenuItem disabled>Cannot Edit</MenuItem>
-              )}
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  handleSendTo();
-                }}
-              >
-                Send to...
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleClose();
-                  handleDuplicate();
-                }}
-              >
-                Duplicate
-              </MenuItem>
-              {newsletter.creator && user && newsletter.creator._id === user._id ? (
                 <MenuItem
                   onClick={() => {
                     handleClose();
-                    handleDelete();
+                    handleDuplicate();
                   }}
                 >
-                  Delete
-                </MenuItem>) : (
-                <MenuItem disabled>Cannot Delete</MenuItem>
-              )}
-            </Menu>
-          </Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {description}
-          </Typography>
-          <StyledInfo>
-            <Typography variant="body2" color="inherit">
-              {new Date(createdAt).toLocaleDateString()}
+                  Duplicate
+                </MenuItem>
+                {newsletter.creator && user && newsletter.creator._id === user._id ? (
+                  <MenuItem
+                    onClick={() => {
+                      handleClose();
+                      handleDelete();
+                    }}
+                  >
+                    Delete
+                  </MenuItem>) : (
+                  <MenuItem disabled>Cannot Delete</MenuItem>
+                )}
+              </Menu>
+            </Box>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              {description}
             </Typography>
-          </StyledInfo>
-        </CardContent>
-      </Card>
-    </Grid>
+            <StyledInfo>
+              <Typography variant="body2" color="inherit">
+                {new Date(createdAt).toLocaleDateString()}
+              </Typography>
+            </StyledInfo>
+          </CardContent>
+        </Card>
+      </Grid>
       {showSendToPopup && (
         <SendToPopup
           handleSendTo={(selectedRows) => handleSendTo(selectedRows)}

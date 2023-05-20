@@ -9,6 +9,7 @@ const cGroupRoutes = require('./routes/clientGroup');
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+require('dotenv').config();
 
 mongoose.connect("mongodb://127.0.0.1:27017/wiswig");
 
@@ -18,12 +19,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-/* app.use(session({
-  secret: 'crypted key',
+app.use(session({
+  secret: 'key',
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false } // Put true if https
-})); */
+}));
 
 app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);

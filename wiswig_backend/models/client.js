@@ -10,4 +10,9 @@ const clientSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+// Define a getter function for the 'name' field
+clientSchema.virtual('name').get(function () {
+  return `${this.client_First_Name} ${this.client_Last_Name}`;
+});
+
 module.exports = mongoose.model("client", clientSchema);

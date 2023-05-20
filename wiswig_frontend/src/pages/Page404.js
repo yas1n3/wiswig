@@ -1,10 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Link as RouterLink } from 'react-router-dom';
-// @mui
 import { styled } from '@mui/material/styles';
 import { Button, Typography, Container, Box } from '@mui/material';
-
-// ----------------------------------------------------------------------
 
 const StyledContent = styled('div')(({ theme }) => ({
   maxWidth: 480,
@@ -13,16 +10,22 @@ const StyledContent = styled('div')(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   flexDirection: 'column',
-  padding: theme.spacing(12, 0),
+  padding: theme.spacing(12, 2), 
 }));
 
-// ----------------------------------------------------------------------
+const StyledImage = styled(Box)(({ theme }) => ({
+  height: 'auto',
+  width: '100%',
+  maxWidth: 300,
+  margin: 'auto',
+  marginBottom: theme.spacing(5),
+}));
 
 export default function Page404() {
   return (
     <>
       <Helmet>
-        <title> 404 Page Not Found | Wiswig </title>
+        <title>404 Page Not Found | Wiswig</title>
       </Helmet>
 
       <Container>
@@ -36,11 +39,9 @@ export default function Page404() {
             spelling.
           </Typography>
 
-          <Box
-            component="img"
-            src="/assets/illustrations/illustration_404.svg"
-            sx={{ height: 260, mx: 'auto', my: { xs: 5, sm: 10 } }}
-          />
+          <StyledImage>
+            <img src="/assets/illustrations/illustration_404.svg" alt="404 Illustration" width="100%" />
+          </StyledImage>
 
           <Button to="/" size="large" variant="contained" component={RouterLink}>
             Go to Home
