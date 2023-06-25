@@ -45,6 +45,18 @@ export default function AccountPopover() {
     }
   };
 
+  const handleUsers = () => {
+    navigate(`/dashboard/user`);
+    handleClose();
+
+  };
+  const handleHome = () => {
+    navigate(`/dashboard/newsletters/`);
+    handleClose();
+
+  };
+
+
   return (
     <>
       <IconButton
@@ -99,14 +111,14 @@ export default function AccountPopover() {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack sx={{ p: 1 }}>
-          <MenuItem key="home" onClick={handleClose}>
+          <MenuItem key="home" onClick={handleHome}>
             Home
           </MenuItem>
-          <MenuItem key="profile" onClick={handleClose}>
+          <MenuItem key="profile" onClick={handleSettings}>
             Profile
           </MenuItem>
           {user.role === 'Admin' && (
-            <MenuItem key="users" onClick={handleClose}>
+            <MenuItem key="users" onClick={handleUsers}>
               Manage users
             </MenuItem>
           )}

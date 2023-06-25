@@ -90,7 +90,7 @@ export default function AddUserForm() {
         console.log('Submitting data:', data);
 
         if (isEdit && currentUser) {
-          await axios.put(`http://localhost:4000/auth/edit/${currentUser._id}`, data);
+          await axios.put(`http://localhost:4000/admin/edit/${currentUser._id}`, data);
           enqueueSnackbar('Update success!', { variant: 'success', autoHideDuration: 3000 });
         } else {
           await axios.post('http://localhost:4000/auth/register', data);

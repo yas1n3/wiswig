@@ -1,22 +1,57 @@
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector, Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { SnackbarProvider } from 'notistack';
+import io from 'socket.io-client';
 import { store, persistor } from './store/store';
 import { AuthProvider } from './context/AuthContext';
 
-// routes
+// Routes
 import Router from './routes';
-// theme
+
+// Theme
 import ThemeProvider from './theme';
-// components
+
+// Components
 import { StyledChart } from './components/chart';
 import ScrollToTop from './components/scroll-to-top';
 
-// ----------------------------------------------------------------------
+const socket = io('ws://localhost:4000');
 
-export default function App() {
+function App() {
+  const dispatch = useDispatch();
+  const loggedInUser = useSelector((state) => state.user);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+
+  useEffect(() => {
+    // Handle online status updates received from the WebSocket server
+    socket.on('onlineStatus', (data) => {
+      const { userId, isOnline } = data;
+
+      // Update online status in the UI
+      setOnlineUsers((prevOnlineUsers) => {
+        const updatedUsers = prevOnlineUsers.map((user) =>
+          user._id === userId ? { ...user, isOnline } : user
+        );
+        return updatedUsers;
+      });
+    });
+
+    // Emit the logged-in user's information to the WebSocket server
+    if (loggedInUser && loggedInUser.user) {
+      console.log('Emitting login message for user:', loggedInUser.user._id);
+
+      socket.emit('login', loggedInUser.user._id);
+    }
+
+    return () => {
+      // Clean up the WebSocket connection
+      socket.disconnect();
+    };
+  }, [loggedInUser]);
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -37,3 +72,5 @@ export default function App() {
     </Provider>
   );
 }
+
+export default App;

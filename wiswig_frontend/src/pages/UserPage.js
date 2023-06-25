@@ -1,6 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+
 import { filter } from 'lodash';
 import { useSnackbar } from 'notistack';
 
@@ -92,18 +94,30 @@ export default function UserPage() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
+  const loggedInUser = useSelector((state) => state.user);
+
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:4000/admin/users');
-        setUSERLIST(response.data);
+        const users = response.data.map(user => {
+          if (user._id === loggedInUser.user?._id) {
+            return {
+              ...user,
+              active: true
+            };
+          } 
+            return user;
+          
+        });
+        setUSERLIST(users);
       } catch (error) {
         console.error(error);
       }
     };
     fetchUsers();
-  }, []);
+  }, [loggedInUser]);
 
   const handleClickMenuItem = (event, userId) => {
     setOpen(event.currentTarget);
@@ -254,7 +268,7 @@ export default function UserPage() {
                         <TableCell align="left">{role}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={active ? 'success' : 'error'}>{sentenceCase(active.toString())}</Label>
+                          <Label color={active ? 'success' : 'error'}>{sentenceCase(active ? 'online' : 'offline')}</Label>
                         </TableCell>
 
                         <TableCell align="right">

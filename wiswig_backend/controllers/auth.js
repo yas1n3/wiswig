@@ -7,14 +7,7 @@ const session = require("express-session");
 module.exports = {
   async register(req, res) {
     const avatars = {
-      male: [
-        "avatar_5",
-        "avatar_12",
-        "avatar_13",
-        "avatar_14",
-        "avatar_15",
-        "avatar_18",
-      ],
+      male: ["avatar_5","avatar_12","avatar_13","avatar_14","avatar_15","avatar_18",],
       female: ["avatar_23", "avatar_8", "avatar_16", "avatar_20"],
     };
 

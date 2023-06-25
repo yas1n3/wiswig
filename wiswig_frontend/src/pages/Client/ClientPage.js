@@ -2,7 +2,6 @@ import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { filter, isNull } from 'lodash';
 import { useSnackbar } from 'notistack';
-
 import { sentenceCase } from 'change-case';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -25,6 +24,11 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 // components
 import Label from '../../components/label';
@@ -92,6 +96,8 @@ export default function ClientPage() {
 
   const [currentClient, setCurrentClient] = useState(null);
 
+  const [companyName, setCompanyName] = useState('');
+
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -117,7 +123,6 @@ export default function ClientPage() {
   const handleCloseMenu = () => {
     setOpen(null);
     setCurrentClient(isNull);
-
   };
 
   const handleRequestSort = (event, property) => {
@@ -181,8 +186,10 @@ export default function ClientPage() {
       await axios.delete(`http://localhost:4000/client/delete/${currentClient._id}`);
       const updatedList = CLIENTLIST.filter((client) => client._id !== currentClient._id);
       setCLIENTLIST(updatedList);
+      enqueueSnackbar('Client deleted!', { variant: 'success', autoHideDuration: 3000 });
+
     } catch (error) {
-      enqueueSnackbar('Client not deleted!');
+      enqueueSnackbar('Failed to delete selected client. Please try again later.', { variant: 'error', autoHideDuration: 3000 });
       console.error(error);
     }
   };
@@ -191,6 +198,36 @@ export default function ClientPage() {
   const filteredClients = applySortFilter(CLIENTLIST, getComparator(order, orderBy), filterName);
   const isNotFound = !filteredClients.length && !!filterName;
   const navigate = useNavigate();
+
+  const [openPopup, setOpenPopup] = useState(false);
+
+  const handleClosePopup = async () => {
+    if (companyName.trim() === '') {
+      setOpenPopup(false);
+      setCompanyName('');
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:4000/company/add', { name: companyName });
+      enqueueSnackbar('Company added successfully!', { variant: 'success', autoHideDuration: 3000 });
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar('Company not added!', { variant: 'error', autoHideDuration: 3000 });
+    }
+
+    setOpenPopup(false);
+    setCompanyName('');
+  };
+
+
+  const handleCompany = () => {
+    setOpenPopup(true);
+  };
+  const handleCompanyNameChange = (event) => {
+    setCompanyName(event.target.value);
+  };
+
   const handleButtonClick = () => {
     navigate('/dashboard/client/add');
   };
@@ -205,15 +242,44 @@ export default function ClientPage() {
           <Typography variant="h4" gutterBottom>
             Client
           </Typography>
-          <Stack  alignItems="center" justifyContent="space-between" mb={5} spacing={2}>
-            <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={null} style={{ width: '160px' }}>
+          <Stack alignItems="center" justifyContent="space-between" mb={5} spacing={2}>
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="eva:plus-fill" />}
+              onClick={handleCompany}
+              style={{ width: '160px' }}
+            >
               New Company
             </Button>
-
-            <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleButtonClick} style={{ width: '160px' }}>
+            {openPopup && (
+              <Dialog open={openPopup} onClose={handleClosePopup}>
+                <DialogTitle>Add Company</DialogTitle>
+                <DialogContent sx={{ width: 400, height: 100 }}>
+                  <TextField
+                    label="Company Name"
+                    fullWidth
+                    autoFocus
+                    margin="dense"
+                    value={companyName}
+                    onChange={handleCompanyNameChange}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClosePopup}>Cancel</Button>
+                  <Button variant="contained" onClick={handleClosePopup}>
+                    Add
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            )}
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="eva:plus-fill" />}
+              onClick={handleButtonClick}
+              style={{ width: '160px' }}
+            >
               New Client
             </Button>
-
           </Stack>
         </Stack>
 
@@ -337,7 +403,8 @@ export default function ClientPage() {
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}
+        <MenuItem
+          sx={{ color: 'error.main' }}
           onClick={() => {
             handleDelete();
             handleCloseMenu();

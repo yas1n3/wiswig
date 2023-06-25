@@ -1,39 +1,41 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Grid, Button, Container, Stack, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Grid, Button, Container, Stack, Typography, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import { AuthContext } from '../context/AuthContext';
 import Iconify from '../components/iconify';
-import { BlogPostCard, BlogPostsSort, BlogPostsSearch } from '../sections/@dashboard/blog';
+import { BlogPostCard } from '../sections/@dashboard/blog';
 import NewsletterPopup from './Newsletter/NewsletterPopup';
-
-
 
 const SORT_OPTIONS = [
   { value: 'latest', label: 'Latest' },
-  { value: 'popular', label: 'Popular' },
   { value: 'oldest', label: 'Oldest' },
 ];
+
 function UserFilterDropdown({ users, selectedUser, setSelectedUser }) {
-
-
   const handleUserChange = (event) => {
     setSelectedUser(event.target.value);
     console.log(event.target.value);
-
-    // console.log(selectedUser);
   };
 
-
-  if (!users) {
-    return null; // or some other fallback component
+  if (!users || users.length === 0) {
+    return null;
   }
 
   return (
     <FormControl>
-      <Select value={selectedUser || ''} onChange={handleUserChange}>
-        <MenuItem value="">All</MenuItem>
+      <Select
+        value={selectedUser || ''}
+        onChange={handleUserChange}
+        displayEmpty
+        renderValue={(value) => {
+          if (value === '') {
+            return 'All users';
+          }
+          const selectedUserObj = users.find((user) => user._id === value);
+          return selectedUserObj ? `${selectedUserObj.name}` : '';
+        }}
+      >
+        <MenuItem value="">All users</MenuItem>
         {users.map((user) => (
           <MenuItem key={user._id} value={user._id}>
             {user.name}
@@ -43,24 +45,25 @@ function UserFilterDropdown({ users, selectedUser, setSelectedUser }) {
     </FormControl>
   );
 }
+
 export default function NewsletterPage() {
   const [newsletters, setNewsletters] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState('');
   const [users, setUsers] = useState([]);
+  const [selectedSortOption, setSelectedSortOption] = useState('latest');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:4000/admin/users')
       .then((response) => response.json())
       .then((data) => {
-        console.log(data); // add this line
         setUsers(data);
       })
       .catch((error) => {
         console.log(error);
       });
   }, []);
-
 
   useEffect(() => {
     axios
@@ -73,55 +76,76 @@ export default function NewsletterPage() {
       });
   }, []);
 
-  const updateNewsletters = useCallback((newNewsletter) => {
-    setNewsletters((newsletters) => [...newsletters, newNewsletter]);
-  }, []);
-
   const handleNewNewsletterClick = () => {
     setIsPopupOpen(true);
   };
 
   const handleSaveNewsletter = (title, description) => {
-
-    // create the request body with the title and description
     const requestBody = {
       title,
       description,
-
     };
 
-    // make the POST request to the backend URL
-    // const token = getCookie('jwt'); // retrieve the token from cookies
-    fetch('http://localhost:4000/newsletter/add_newsletter', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 'Authorization': `Bearer ${token}`, // add the token to the Authorization header
-      },
-      credentials: 'include', // include cookies in the request
-      body: JSON.stringify(requestBody),
-
-
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // update the state with the new newsletter data
-        console.log(requestBody);
-        updateNewsletters(data);
-        window.location.reload();
+    axios
+      .post('http://localhost:4000/newsletter/add_newsletter', requestBody, {
+        withCredentials: true, // Include cookies in the request
+      })
+      .then((response) => {
+        console.log(response.data.newsletter);
+        const newNewsletter = response.data.newsletter;
+        setNewsletters((prevNewsletters) => [...prevNewsletters, newNewsletter]);
+        setIsPopupOpen(false);
       })
       .catch((error) => console.error(error));
-
-    setIsPopupOpen(false);
-
   };
-  const filteredNewsletters = newsletters.filter((newsletter) => {
-    if (!selectedUser) {
-      return true;
+
+  const handleDelete = async (id) => {
+    try {
+      setNewsletters((prevNewsletters) => prevNewsletters.filter((n) => n._id !== id));
+    } catch (error) {
+      console.error(`Error deleting newsletter with id ${id}`, error);
     }
-    console.log(selectedUser);
-    return newsletter.creator && newsletter.creator._id === selectedUser;
-  });
+  };
+
+  const handleDuplicate = (ns) => {
+    if (ns) {
+      setNewsletters((prevNewsletters) => [...prevNewsletters, ns]);
+    }
+  };
+
+  const handleSortChange = (event) => {
+    setSelectedSortOption(event.target.value);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredNewsletters = newsletters
+    .filter((newsletter) => {
+      if (!selectedUser) {
+        return true;
+      }
+      return newsletter.creator && newsletter.creator._id === selectedUser;
+    })
+    .filter((newsletter) => {
+      if (searchTerm.trim() === '') {
+        return true;
+      }
+      const title = newsletter.title.toLowerCase();
+      const description = newsletter.description.toLowerCase();
+      const search = searchTerm.toLowerCase();
+      return title.includes(search) || description.includes(search);
+    })
+    .sort((a, b) => {
+      if (selectedSortOption === 'latest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } if (selectedSortOption === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
+      return 0;
+    });
+
   return (
     <>
       <Helmet>
@@ -139,30 +163,39 @@ export default function NewsletterPage() {
         </Stack>
 
         <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
-          <BlogPostsSearch posts={newsletters} setPosts={setNewsletters} />
-          <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
-            <BlogPostsSort options={SORT_OPTIONS} height="14px" width="12px" />
-            <UserFilterDropdown height="14px" width="12px"
-            users={users}
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-          />
+          <TextField label="Search" value={searchTerm} onChange={handleSearchChange} />
+          <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+            <FormControl>
+              <Select value={selectedSortOption} onChange={handleSortChange}>
+                {SORT_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <UserFilterDropdown
+              users={users}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+            />
+          </Stack>
         </Stack>
-      </Stack>
 
-      <Grid container spacing={3}>
-        {filteredNewsletters.map((newsletter) => (
-          <BlogPostCard
-            key={newsletter.id}
-            newsletter={newsletter}
-            onNewsletterDelete={(id) =>
-              setNewsletters(newsletters.filter((n) => n.id !== id))
-            }
-          />
-        ))}
-      </Grid>
+        <Grid container spacing={3}>
+          {filteredNewsletters.map((newsletter) => (
+            <BlogPostCard
+              key={newsletter.id}
+              newsletter={newsletter}
+              onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
+            />
+          ))}
+        </Grid>
 
-      <NewsletterPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveNewsletter} />      </Container >
+        <NewsletterPopup open={isPopupOpen} onClose={() => setIsPopupOpen(false)} onSave={handleSaveNewsletter} />
+      </Container>
     </>
   );
 }

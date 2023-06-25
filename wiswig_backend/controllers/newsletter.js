@@ -1,5 +1,9 @@
 const Newsletter = require("../models/newsletter");
 const User = require("../models/user");
+const Company = require("../models/clientGroup");
+const Client = require("../models/client");
+
+
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
@@ -29,7 +33,6 @@ module.exports = {
       body.cover = `cover_${cov}`;
 
       const newsletter = await Newsletter.create(body);
-      console.log(newsletter);
 
       await User.updateOne(
         {
@@ -44,9 +47,13 @@ module.exports = {
           },
         }
       );
-      console.log(decoded);
-      console.log(await User.findById(userId));
-      res.status(200).json({ message: "Newsletter created successfully" });
+
+      res
+        .status(200)
+        .json({
+          message: "Newsletter created successfully",
+          newsletter: newsletter,
+        });
     } catch (err) {
       res.status(400).json({ message: "Error", error: err.message });
     }
@@ -221,7 +228,7 @@ module.exports = {
 
       const cov = Math.floor(Math.random() * 24) + 1;
       const duplicatedNewsletter = new Newsletter({
-        title: newsletterToDuplicate.title,
+        title: req.body.title,
         description: req.body.description,
         HTMLcontent: newsletterToDuplicate.HTMLcontent,
         JSONcontent: newsletterToDuplicate.JSONcontent,
@@ -246,9 +253,15 @@ module.exports = {
         }
       );
 
-      res.status(200).json({ message: "Newsletter duplicated successfully" });
+      res
+        .status(200)
+        .json({
+          message: "Newsletter duplicated successfully",
+          savedNewsletter,
+        });
     } catch (err) {
       res.status(500).json({ message: "Failed to duplicate the newsletter" });
+      console.log(err);
     }
   },
 
@@ -259,32 +272,45 @@ module.exports = {
       // Get the newsletter by ID
       const newsletter = await Newsletter.findById(newsletterId);
 
+      // Convert the companyIds to an array if it's not already
+      const companyIdArray = Array.isArray(companyIds) ? companyIds : [companyIds];
+
       // Get the companies by IDs
-      const companies = await Company.find({ _id: { $in: companyIds } });
+      const companies = await Company.find({ _id: { $in: companyIdArray } });
 
       // Create the email transporter
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        service: "yahoo",
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
       });
 
-      // Send the newsletter to the clients of each company
-      for (const company of companies) {
-        const clients = company.clients;
-        for (const client of clients) {
+      // Get all clients
+      const clients = await Client.find();
+
+      // Loop through the clients and send emails if client.comp matches a company
+      for (const client of clients) {
+        if (companies.some((company) => company._id.toString() === client.clientGroup._id.toString())) {
           // Create the email message
           const mailOptions = {
-            from: "your-email@gmail.com", // Replace with your own email
+            from: process.env.EMAIL_USER,
             to: client.client_Mail,
             subject: newsletter.title,
             html: newsletter.HTMLcontent,
           };
 
-          // Send the email
-          await transporter.sendMail(mailOptions);
+          try {
+            // Send the email
+            await transporter.sendMail(mailOptions);
+            console.log("Email sent from:", mailOptions.from);
+            console.log("Email sent to:", client.client_Mail);
+          } catch (error) {
+            console.error("Error sending email:", error);
+            // Handle the specific email sending error
+            // For example, you can skip this client and continue with others, or take appropriate action based on the error
+          }
         }
       }
 
@@ -293,7 +319,8 @@ module.exports = {
       console.error("Error sending newsletter:", error);
       res.status(500).json({ error: "Error sending newsletter" });
     }
-  },
+  }
+
 
   //send newsletter
   /* async  sendNewsletterToClient(req, res) {

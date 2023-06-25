@@ -1,6 +1,6 @@
 {
-  "short_name": "Minimal App",
-  "name": "React Material Minimal UI Kit",
+  "short_name": "Wiswig",
+  "name": "Wiswig newsletter builder",
   "icons": [
     {
       "src": "favicon/android-chrome-192x192.png",
@@ -13,6 +13,7 @@
       "type": "image/png"
     }
   ],
+
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

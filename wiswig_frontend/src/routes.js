@@ -7,7 +7,6 @@ import NewsletterPage from './pages/NewsletterPage';
 import UserPage from './pages/UserPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
-import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import AddUserForm from './pages/User/AddUserForm';
 import ClientPage from './pages/Client/ClientPage';

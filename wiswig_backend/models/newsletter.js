@@ -13,6 +13,10 @@ const newsletterSchema = mongoose.Schema(
     JSONcontent: String,
     status: String,
     cover: String,
+    recipients: [{ type: mongoose.Schema.Types.ObjectId, ref: "client" }],
+    sentAt: { type: Date, default: Date.now },
+    clicks: { type: Number, default: 0 },
+    opens: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

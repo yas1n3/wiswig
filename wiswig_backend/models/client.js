@@ -5,7 +5,8 @@ const clientSchema = mongoose.Schema(
     client_First_Name: String,
     client_Last_Name: String,
     client_Mail: String,
-    clientGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'clientGroup' }
+    clientGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'clientGroup' },
+    lastOpenedNewsletter: { type: mongoose.Schema.Types.ObjectId, ref: "Newsletter" },
   },
   { timestamps: true }
 );

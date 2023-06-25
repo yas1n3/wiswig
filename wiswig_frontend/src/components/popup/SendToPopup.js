@@ -14,10 +14,14 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
+
 
 export default function SendToPopup({ onClose, newsletter }) {
   const [companies, setCompanies] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
+  const { enqueueSnackbar } = useSnackbar();
+
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -61,8 +65,12 @@ export default function SendToPopup({ onClose, newsletter }) {
     try {
       const response = await axios.post('http://localhost:4000/newsletter/send', data);
       console.log('Newsletter sent successfully:', response.data);
+      enqueueSnackbar('Newsletter sent successfully!', { variant: 'success', autoHideDuration: 3000 });
+
     } catch (error) {
       console.error('Error sending newsletter:', error);
+      enqueueSnackbar('Failed to save newsletter. Please try again later.', { variant: 'error', autoHideDuration: 3000 });
+
     }
   };
 
@@ -113,10 +121,10 @@ export default function SendToPopup({ onClose, newsletter }) {
         </TableContainer>
       </DialogContent>
       <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
         <Button onClick={() => { handleSendTo(); onClose(); }} disabled={selectedRows.length === 0}>
           Send
         </Button>
-        <Button onClick={onClose}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );
