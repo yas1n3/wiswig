@@ -18,7 +18,7 @@ module.exports = {
 
     try {
       const decoded = jwt.verify(token, "Hakona_Matata");
-      const userId = decoded.data._id;
+      const userId = decoded.data;
 
       const body = {
         creator: userId,
@@ -68,7 +68,7 @@ module.exports = {
     }
     try {
       const decoded = jwt.verify(token, "Hakona_Matata");
-      const userId = decoded.data._id;
+      const userId = decoded.data;
       const newsletter = await Newsletter.findById(req.params.id);
       if (!newsletter) {
         return res.status(404).json({ message: "Newsletter not found" });
@@ -184,7 +184,7 @@ module.exports = {
     }
     try {
       const decoded = jwt.verify(token, "Hakona_Matata");
-      const userId = decoded.data._id;
+      const userId = decoded.data;
       const newsletter = await Newsletter.findById(req.params.id);
       if (!newsletter) {
         return res.status(404).json({ message: "Newsletter not found" });
@@ -220,7 +220,7 @@ module.exports = {
     }
     try {
       const decoded = jwt.verify(token, "Hakona_Matata");
-      const newCreatorId = decoded.data._id;
+      const newCreatorId = decoded.data;
       const newsletterToDuplicate = await Newsletter.findById(req.params.id);
       if (!newsletterToDuplicate) {
         return res.status(404).json({ message: "Newsletter not found" });

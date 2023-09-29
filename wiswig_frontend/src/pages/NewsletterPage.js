@@ -149,13 +149,13 @@ export default function NewsletterPage() {
   return (
     <>
       <Helmet>
-        <title> NS | Wiswig </title>
+        <title> Newsletters | Wiswig </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            NS
+            Newsletters
           </Typography>
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleNewNewsletterClick}>
             New

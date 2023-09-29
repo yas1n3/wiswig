@@ -47,7 +47,7 @@ export function LoginForm() {
     try {
       const success = await login(mail, password);
       if (success) {
-        navigate('/dashboard/editor');
+        navigate('/dashboard/newsletters');
       } else {
         console.error('Login failed');
         setError('Invalid email or password');

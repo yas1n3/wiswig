@@ -234,13 +234,13 @@ export default function ClientPage() {
   return (
     <>
       <Helmet>
-        <title> Client | Wiswig </title>
+        <title> Clients | Wiswig </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Client
+            Clients
           </Typography>
           <Stack alignItems="center" justifyContent="space-between" mb={5} spacing={2}>
             <Button
