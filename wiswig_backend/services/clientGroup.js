@@ -9,6 +9,8 @@ const clientGroupService = {
             });
 
             await newGroup.save();
+            console.log('Client group saved successfully:', name);
+
         } catch (error) {
             throw error;
         }

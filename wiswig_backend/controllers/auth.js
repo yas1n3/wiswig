@@ -13,11 +13,20 @@ module.exports = {
   loginUser: async (req, res) => {
     try {
       const { mail, password } = req.body;
-      const token = await authService.loginUser(mail, password);
+      const { user, token } = await authService.loginUser(mail, password);
 
-      // Set the token in the response, cookie, etc.
+      if (!token) {
+        return res.status(400).json({ message: "Authentication failed" });
+      }
 
-      return res.status(200).json({ message: "login successful", token });
+      // Set the token as a cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        maxAge: 86400000, // 24 hours
+        secure: true, // Set to true if using HTTPS
+        sameSite: "none", // Set this flag for CSRF prevention if using same origin
+      });
+      return res.status(200).json({ message: "login successful", user, token });
     } catch (error) {
       console.log(error);
       return res.status(400).json({ message: error.message });

@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const clientGroupSchema = mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: true,
+    },
     clients: [
       {
         clientId: {

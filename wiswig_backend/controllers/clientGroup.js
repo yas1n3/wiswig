@@ -3,7 +3,10 @@ const clientGroupService = require("../services/clientGroup");
 module.exports = {
     addClientGroup: async (req, res) => {
         try {
-            await clientGroupService.addClientGroup(req.body.name);
+            const { name } = req.body;
+            console.log('Received name:', name); // Log the received name
+            await clientGroupService.addClientGroup(name);
+            console.log('Client group created successfully:', name);
             res.status(201).json({ message: "Client group created successfully." });
         } catch (error) {
             console.error(error);

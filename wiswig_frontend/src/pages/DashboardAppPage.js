@@ -22,8 +22,8 @@ export default function DashboardAppPage() {
   const [newsletterTitle, setNewsletterTitle] = useState('');
   const [newsletterCreator, setNewsletterCreator] = useState('');
   const { user } = useSelector((state) => state.user);
-  const isDisabled = newsletterCreator !== user._id;
-
+  // const isDisabled = newsletterCreator === user._id;
+  const isDisabled = false;
 
 
 

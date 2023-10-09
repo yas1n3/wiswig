@@ -64,7 +64,7 @@ const authService = {
         expiresIn: "72h",
       });
 
-      return token;
+      return { token, user };
     } catch (error) {
       throw error;
     }

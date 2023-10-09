@@ -204,7 +204,7 @@ export default function ClientPage() {
   const handleClosePopup = async () => {
     if (companyName.trim() === '') {
       setOpenPopup(false);
-      setCompanyName('');
+      // setCompanyName('');
       return;
     }
 
